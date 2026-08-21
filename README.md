@@ -4,7 +4,7 @@ Um projeto dedicado ao resgate de animais, animais perdidos e encontrados, e à 
 # NestJs com MySQL
 [https://docs.nestjs.com/techniques/database] - https://docs.nestjs.com/techniques/database
 
-# Ecossistema de Desenvolvimento - Lambeijos com CMS Modular
+# Ecossistema de Desenvolvimento - Abrigo Lambeijos com CMS Modular
 
 Este repositório utiliza a arquitetura de **Monorepo** com **NPM/Yarn Workspaces** para gerenciar de forma centralizada as aplicações de Frontend, Backend e Painel Administrativo (Admin).
 
@@ -15,7 +15,7 @@ Este repositório utiliza a arquitetura de **Monorepo** com **NPM/Yarn Workspace
 A estrutura física adota o padrão onde todas as aplicações executáveis e independentes residem estritamente dentro do diretório `apps/`.
 
 ```text
-lambeijos/
+abrigolambeijos/
 ├── package.json             # Configuração do Workspace raiz
 ├── README.md                # Documentação do ecossistema
 └── apps/                    # Centralização das aplicações
@@ -55,7 +55,7 @@ Para que o gerenciador de pacotes reconheça a estrutura, o arquivo `package.jso
 
 ```json
 {
-  "name": "lambeijos",
+  "name": "abrigolambeijos",
   "private": true,
   "workspaces": [
     "apps/*"
