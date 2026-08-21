@@ -1,4 +1,4 @@
-# Lambeijos
+# Abrigo Lambeijos
 Um projeto dedicado ao resgate de animais, animais perdidos e encontrados, e à saúde animal.
 
 # NestJs com MySQL
