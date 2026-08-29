@@ -18,14 +18,40 @@ A estrutura física adota o padrão onde todas as aplicações executáveis e in
 
 ```text
 abrigolambeijos/
-├── package.json             # Configuração do Workspace raiz
-├── README.md                # Documentação do ecossistema
-└── apps/                    # Centralização das aplicações
-    ├── backend/             # API REST (NestJS + Prisma)
-    ├── frontend/            # Site Público (React / Vite ou Next.js)
-    └── admin/               # Painel CMS (React + Vite)
+│
+├── package.json
+├── README.md
+├── .env.example
+├── docker-compose.yml
+│
+└── apps/
+    │
+    ├── backend/
+    │   ├── NestJS
+    │   ├── Prisma
+    │   ├── MySQL
+    │   │
+    │   └── src/
+    │       └── modules/
+    │           ├── auth/
+    │           ├── users/
+    │           ├── animals/
+    │           ├── lost-animals/
+    │           ├── rescues/
+    │           ├── adoptions/
+    │           ├── donations/
+    │           └── ai/
+    │               ├── llm/
+    │               ├── prompts/
+    │               ├── tools/
+    │               └── ai.service.ts
+    │
+    ├── frontend/
+    │   └── Next.js + React
+    │
+    └── admin/
+        └── React + Vite
 ```
-
 ---
 
 ## 🛠️ Tecnologias Utilizadas
