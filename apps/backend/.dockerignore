@@ -1,0 +1,24 @@
+# Secrets - never entry on container
+
+.env
+.env.*
+!.env.example
+
+# The prisma.config.ts uses env() and break the build if the env file is not present
+# The schema.prisma is successfully generated and the migrations are already applied, so we don't need to copy the .env file to the container
+# prisma.config.ts
+
+# Dependencies and local build (are required on container)
+node_modules
+dist
+
+# Unecessary files for the container
+uploads
+*.md
+*.psl
+*.sql
+.vscode
+.github
+eslint.config.mjs
+*.spec.ts
+test/
