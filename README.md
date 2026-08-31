@@ -49,8 +49,16 @@ abrigolambeijos/
     ├── frontend/
     │   └── Next.js + React
     │
-    └── admin/
-        └── React + Vite
+    ├── admin/
+    │   └── React + Vite
+    │
+    ├── ml/
+    ├── datasets/
+    ├── notebooks/
+    ├── training/
+    ├── evaluation/
+    └── models/
+        └── animal-recommender/
 ```
 ---
 
@@ -59,7 +67,7 @@ abrigolambeijos/
 ### Backend (`apps/backend`)
 
 - **NestJS:** Framework Node.js robusto, tipado e escalável para arquitetura de microsserviços ou monólitos modulares.
-- **Prisma ORM:** Abstração e manipulação de banco de dados com total suporte a TypeScript.
+- **Prisma ORM:** Abstração e manipulação de banco de dados com total suporte a TypeScript na versão estável 7.10.0. Até o dia 31/08/2026, o upgrade para versão 8.0 ainda não recomendada, pois trata-se de uma versão sem o suporte ao MySQL.
 
 ### Interfaces (`apps/frontend` & `apps/admin`)
 
