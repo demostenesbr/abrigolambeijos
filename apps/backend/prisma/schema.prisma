@@ -7,12 +7,125 @@ datasource db {
     relationMode = "prisma"
 }
 
-model User {
+model Users {
     id        Int      @id @default(autoincrement())
     email     String   @unique
     name      String?
+    rules     String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index([email])
+}
+
+model Pets {
+    id          Int      @id @default(autoincrement())
+    name        String
+    species     String
+    age         Int
+    size        String
+    type        String
+    breed       String
+    gender      String
+    description String?
+    location    String
+    image       String?
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@index([name])
+}
+
+model Adopters {
+    id        Int      @id @default(autoincrement())
+    name      String
+    email     String   @unique
+    phone     String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([email])
+}
+
+model Adoptions {
+    id           Int      @id @default(autoincrement())
+    adopterId    Int
+    animalId     Int
+    adoptionDate DateTime @default(now())
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@index([adopterId])
+    @@index([animalId])
+}
+
+model AdoptionRequests {
+    id          Int      @id @default(autoincrement())
+    adopterId   Int
+    animalId    Int
+    requestDate DateTime @default(now())
+    petName     String
+    userName    String
+    email       String
+    phone       String
+    address     String
+    experience  String
+    home        String
+    status      String   @default("pending")
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@index([adopterId])
+    @@index([animalId])
+}
+
+model Rescues {
+    id        Int      @id @default(autoincrement())
+    name      String
+    location  String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([name])
+}
+
+model Donations {
+    id        Int      @id @default(autoincrement())
+    donorName String
+    amount    Float
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([donorName])
+}
+
+model Recommendations {
+    id                 Int      @id @default(autoincrement())
+    adopterId          Int
+    animalId           Int
+    recommendationText String
+    createdAt          DateTime @default(now())
+    updatedAt          DateTime @updatedAt
+
+    @@index([adopterId])
+    @@index([animalId])
+}
+
+model Partners {
+    id          Int      @id @default(autoincrement())
+    name        String
+    type        String
+    contact     String
+    email       String
+    phone       String
+    address     String
+    city        String
+    state       String
+    country     String
+    description String
+    location    String
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@index([name])
 }

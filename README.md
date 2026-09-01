@@ -35,11 +35,12 @@ abrigolambeijos/
     │       └── modules/
     │           ├── auth/
     │           ├── users/
-    │           ├── animals/
-    │           ├── lost-animals/
-    │           ├── rescues/
-    │           ├── adoptions/
-    │           ├── donations/
+    │           ├── pets/
+│   │           ├── adopters/
+│   │           ├── adoptions/
+│   │           ├── rescues/
+│   │           ├── donations/
+│   │           └── recommendations/
     │           └── ai/
     │               ├── llm/
     │               ├── prompts/
