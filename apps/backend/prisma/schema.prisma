@@ -19,19 +19,23 @@ model Users {
 }
 
 model Pets {
-    id          Int      @id @default(autoincrement())
-    name        String
-    species     String
-    age         Int
-    size        String
-    type        String
-    breed       String
-    gender      String
-    description String?
-    location    String
-    image       String?
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    id                  Int      @id @default(autoincrement())
+    name                String
+    species             String
+    age                 Int
+    coattype            String
+    size                String
+    breed               String
+    gender              String
+    microchipped        Boolean
+    castrated           Boolean
+    behavioralprofile   String?
+    healthcondition     String?
+    redemptioncondition String?
+    location            String
+    image               String?
+    createdAt           DateTime @default(now())
+    updatedAt           DateTime @updatedAt
 
     @@index([name])
 }
