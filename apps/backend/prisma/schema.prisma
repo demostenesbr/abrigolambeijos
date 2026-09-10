@@ -11,33 +11,40 @@ model Users {
     id        Int      @id @default(autoincrement())
     email     String   @unique
     name      String?
+    username  String?
     rules     String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index([email])
+    @@index([username])
 }
 
 model Pets {
-    id                  Int      @id @default(autoincrement())
-    name                String
-    species             String
-    age                 Int
-    coattype            String
-    size                String
-    breed               String
-    gender              String
-    microchipped        Boolean
-    castrated           Boolean
-    behavioralprofile   String?
-    healthcondition     String?
-    redemptioncondition String?
-    location            String
-    image               String?
-    createdAt           DateTime @default(now())
-    updatedAt           DateTime @updatedAt
+    id                        Int      @id @default(autoincrement())
+    animalname                String
+    rganimal                  String
+    dateentry                 DateTime
+    petphoto                  String?
+    name                      String
+    race                      String
+    gender                    String
+    microchipped              Boolean
+    microchipnumber           String?
+    castrated                 Boolean
+    coattypecoloration        String
+    predominantcoatcolor      String
+    signsanddistinctive       String
+    estimatedchronologicalage Int
+    birthdate                 DateTime
+    size                      String
+    behavioralprofile         String?
+    healthcondition           String?
+    redemptioncondition       String?
+    createdAt                 DateTime @default(now())
+    updatedAt                 DateTime @updatedAt
 
-    @@index([name])
+    @@index([animalname])
 }
 
 model Adopters {
