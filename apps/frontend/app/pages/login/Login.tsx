@@ -1,5 +1,8 @@
+"use client";
+
 import { useState } from "react";
-import { Link } from "react-router";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -23,16 +26,19 @@ export default function Login() {
           background: "linear-gradient(135deg, #1A1033 0%, #4D246A 100%)",
         }}
       >
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800&h=900&fit=crop&auto=format"
           alt="Animais felizes"
           className="absolute inset-0 w-full h-full object-cover opacity-15"
+          width={800}
+          height={900}
+          loading="eager"
         />
         <div className="relative z-10">
-          <Link to="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl">🐾</span>
             <span className="text-[#EDE7F6] text-xl font-semibold">
-              Lar Feliz
+              Abrigo Lambeijos
             </span>
           </Link>
         </div>
@@ -72,7 +78,7 @@ export default function Login() {
             <p className="text-sm text-[#546E7A]">
               Não tem conta?{" "}
               <Link
-                to="/cadastro"
+                href="/cadastro"
                 className="text-[#4D246A] font-semibold hover:underline underline-offset-4"
               >
                 Cadastre-se

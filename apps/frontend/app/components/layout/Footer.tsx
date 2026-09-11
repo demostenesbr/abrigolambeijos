@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+
 export default function Footer() {
   return (
     <footer className="bg-[#1A1033] text-[#D1C4E9] mt-24">
@@ -16,15 +17,9 @@ export default function Footer() {
             amar.
           </p>
           <div className="flex gap-3 mt-6">
-            {["instagram", "facebook"].map((s) => (
-              <a
-                key={s}
-                href="#"
-                className="w-9 h-9 rounded-full bg-[#2D1B4E] flex items-center justify-center hover:bg-[#F28C28] transition-colors text-xs font-bold uppercase"
-              >
-                {s[0].toUpperCase()}
-              </a>
-            ))}
+            <svg className="icon" role="presentation" aria-hidden="true">
+              <use href="/icons.svg#documentation-icon"></use>
+            </svg>
           </div>
         </div>
 
@@ -40,7 +35,10 @@ export default function Footer() {
               ["Sobre nós", "/sobre-nos"],
             ].map(([label, href]) => (
               <li key={label}>
-                <Link href={href} className="hover:text-[#F28C28] transition-colors">
+                <Link
+                  href={href}
+                  className="hover:text-[#F28C28] transition-colors"
+                >
                   {label}
                 </Link>
               </li>
@@ -60,7 +58,10 @@ export default function Footer() {
               ["Animais perdidos", "/adotar"],
             ].map(([label, href]) => (
               <li key={label}>
-                <Link href={href} className="hover:text-[#F28C28] transition-colors">
+                <Link
+                  href={href}
+                  className="hover:text-[#F28C28] transition-colors"
+                >
                   {label}
                 </Link>
               </li>

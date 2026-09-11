@@ -1,4 +1,6 @@
+"use client";
 import { useState } from "react";
+import Image from "next/image";
 
 type Tab = "adotar" | "perdidos" | "encontrados";
 
@@ -247,10 +249,12 @@ export default function Adopt() {
               className="group bg-white rounded-2xl overflow-hidden border border-[#D1C4E9] hover:border-[#4D246A]/40 hover:shadow-lg transition-all duration-300"
             >
               <div className="relative h-52 bg-[#EDE7F6] overflow-hidden">
-                <img
+                <Image
                   src={a.img}
                   alt={a.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  width={500}
+                  height={420}
                 />
                 <span
                   className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full ${statusLabels[a.status].color}`}

@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 
 const tiers = [
@@ -41,7 +42,7 @@ const impacts = [
   { value: "R$ 500", label: "financia uma castração completa" },
 ];
 
-const pixKey = "doacoes@larfeliz.org.br";
+const pixKey = "doacoes@abrigolambeijos.com.br";
 
 export default function Donations() {
   const [selected, setSelected] = useState(80);

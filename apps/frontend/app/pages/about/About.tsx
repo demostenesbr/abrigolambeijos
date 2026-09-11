@@ -30,7 +30,7 @@ const team = [
 const timeline = [
   {
     year: "2014",
-    event: "Fundação do Lar Feliz com 3 voluntárias e 12 animais acolhidos.",
+    event: "Fundação do Abrigo Lambeijos com 3 voluntárias e 12 animais acolhidos.",
   },
   {
     year: "2016",
@@ -63,10 +63,12 @@ export default function About() {
     <div>
       {/* Hero */}
       <section className="relative h-80 md:h-96 overflow-hidden bg-[#1A1033]">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=1400&h=600&fit=crop&auto=format"
           alt="Animais felizes"
           className="absolute inset-0 w-full h-full object-cover opacity-20"
+          width={1400}
+          height={600}
         />
         <div className="absolute inset-0 flex items-center">
           <div className="max-w-6xl mx-auto px-6">
@@ -174,20 +176,11 @@ export default function About() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {team.map((m) => (
             <div key={m.name} className="text-center group">
-              <div className="w-32 h-32 mx-auto rounded-full overflow-hidden mb-4 border-4 border-[#EDE7F6] group-hover:border-[#4D246A] transition-colors bg-[#EDE7F6]">
-                <Image
-                  src={m.img}
-                  alt={m.name}
-                  width={128}
-                  height={128}
-                  className="w-full h-full object-cover"
-                />
-              </div>
               <h3 className="font-semibold text-[#263238] mb-1">{m.name}</h3>
               <p className="text-sm text-[#4D246A] font-medium mb-1">
                 {m.role}
               </p>
-              <p className="text-xs text-[#78909C]">{m.years} no Lar Feliz</p>
+              <p className="text-xs text-[#78909C]">{m.years} no Abrigo Lambeijos</p>
             </div>
           ))}
         </div>

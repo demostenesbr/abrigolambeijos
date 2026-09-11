@@ -1,12 +1,6 @@
-/* import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import { deletePet } from './actions';
+import Main from "../pages/pets/main";
+import React from "react";
 
-export default async function PetsPage() {
-  const pets = await prisma.pets.findMany();
-    orderBy: { createdAt: 'desc' };
-})
-
-return (
-    <div>
-) */
+export default function PetsPage() {
+  return React.createElement(Main);
+ }
