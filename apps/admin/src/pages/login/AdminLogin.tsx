@@ -1,11 +1,7 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import Logo from "./../../assets/abrigo-lambeijos.png";
+import { Link } from "react-router";
 
-export default function Login() {
+export default function AdminLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
@@ -27,35 +23,23 @@ export default function Login() {
           background: "linear-gradient(135deg, #1A1033 0%, #4D246A 100%)",
         }}
       >
-        <Image
+        <img
           src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800&h=900&fit=crop&auto=format"
           alt="Animais felizes"
           className="absolute inset-0 w-full h-full object-cover opacity-15"
-          width={800}
-          height={900}
-          loading="eager"
         />
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">
-              {" "}
-              <Image
-                src={Logo}
-                alt="Logo"
-                width={32}
-                height={32}
-                className="h-8 w-8"
-              />
-            </span>
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-2xl">🐾</span>
             <span className="text-[#EDE7F6] text-xl font-semibold">
-              Abrigo Lambeijos
+              Lar Feliz
             </span>
           </Link>
         </div>
         <div className="relative z-10">
           <blockquote className="text-3xl text-[#EDE7F6] leading-snug mb-6">
-            Cada animal resgatado é uma história de amor que está apenas
-            começando
+            "Cada animal resgatado é uma história de amor que está apenas
+            começando."
           </blockquote>
           <p className="text-[#78909C] text-sm">
             Ana Cristina Ferreira, fundadora
@@ -88,7 +72,7 @@ export default function Login() {
             <p className="text-sm text-[#546E7A]">
               Não tem conta?{" "}
               <Link
-                href="/cadastro"
+                to="/cadastro"
                 className="text-[#4D246A] font-semibold hover:underline underline-offset-4"
               >
                 Cadastre-se

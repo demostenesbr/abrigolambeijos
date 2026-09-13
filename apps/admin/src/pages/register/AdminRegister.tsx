@@ -1,11 +1,7 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import Logo from "./../../assets/abrigo-lambeijos.png";
+import { Link } from "react-router";
 
-export default function Register() {
+export default function AdminRegister() {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -42,7 +38,7 @@ export default function Register() {
             cadastro e começar a fazer a diferença na vida dos animais.
           </p>
           <Link
-            href="/entrar"
+            to="/entrar"
             className="inline-block bg-[#F28C28] text-white font-semibold px-10 py-4 rounded-full hover:bg-[#D97820] transition-colors"
           >
             Ir para o login
@@ -61,33 +57,22 @@ export default function Register() {
           background: "linear-gradient(135deg, #1A1033 0%, #4D246A 100%)",
         }}
       >
-        <Image
+        <img
           src="https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=800&h=900&fit=crop&auto=format"
           alt="Animal feliz"
           className="absolute inset-0 w-full h-full object-cover opacity-15"
-          width={800}
-          height={900}
-          loading="eager"
         />
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">
-              <Image
-                src={Logo}
-                alt="Logo"
-                width={32}
-                height={32}
-                className="h-8 w-8"
-              />
-            </span>
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-2xl">🐾</span>
             <span className="text-[#EDE7F6] text-xl font-semibold">
-              Abrigo Lambeijos
+              Lar Feliz
             </span>
           </Link>
         </div>
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl text-white font-bold leading-snug">
-            Faça parte da maior rede de proteção animal.
+            Faça parte da maior rede de proteção animal do estado.
           </h2>
           <ul className="space-y-3">
             {[
@@ -123,7 +108,7 @@ export default function Register() {
             <p className="text-sm text-[#546E7A]">
               Já tem conta?{" "}
               <Link
-                href="/entrar"
+                to="/entrar"
                 className="text-[#4D246A] font-semibold hover:underline underline-offset-4"
               >
                 Entrar

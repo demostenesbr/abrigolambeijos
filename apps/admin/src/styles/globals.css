@@ -1,4 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-background: #FFF8F0;
+  --color-foreground: #263238;
+  --color-card: #FFF8F0;
+  --color-card-foreground: #263238;
+  --color-primary: #4D246A;
+  --color-primary-foreground: #FFF8F0;
+  --color-secondary: #EDE7F6;
+  --color-secondary-foreground: #37474F;
+  --color-muted: #F3E5F5;
+  --color-muted-foreground: #546E7A;
+  --color-accent: #F28C28;
+  --color-accent-foreground: #FFF8F0;
+  --color-border: #D1C4E9;
+  --color-ring: #4D246A;
+  --radius: 0.75rem;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FFF8F0;
+  color: #263238;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #D1C4E9;
+  border-radius: 999px;
+}
+
 * {
-    font-family: 'Inter', sans-serif;
-    color: hsl(from color 0 0 0);
+  scrollbar-width: thin;
+  scrollbar-color: #D1C4E9 transparent;
 }

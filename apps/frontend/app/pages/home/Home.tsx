@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const animals = [
   {
@@ -84,8 +85,7 @@ export default function Home() {
             </span>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] text-[#EDE7F6] mb-6">
               Toda vida merece{" "}
-              <em className="text-[#F28C28] not-italic">amor</em>
-              {" "}e um lar.
+              <em className="text-[#F28C28] not-italic">amor</em> e um lar.
             </h1>
             <p className="text-[#78909C] text-lg leading-relaxed max-w-md mb-10">
               Somos uma rede de resgate, adoção e cuidado animal. Conectamos
@@ -117,7 +117,9 @@ export default function Home() {
                 <div className="font-bold text-3xl text-[#F28C28] mb-1">
                   {s.value}
                 </div>
-                <div className="text-xs text-[#78909C] font-medium">{s.label}</div>
+                <div className="text-xs text-[#78909C] font-medium">
+                  {s.label}
+                </div>
               </div>
             ))}
           </div>
@@ -133,8 +135,13 @@ export default function Home() {
       {/* Mobile stats */}
       <section className="md:hidden bg-[#1A1033] px-6 pb-10 grid grid-cols-2 gap-4">
         {stats.map((s) => (
-          <div key={s.label} className="bg-[#2D1B4E] rounded-xl p-4 text-center">
-            <div className="font-bold text-2xl text-[#F28C28] mb-0.5">{s.value}</div>
+          <div
+            key={s.label}
+            className="bg-[#2D1B4E] rounded-xl p-4 text-center"
+          >
+            <div className="font-bold text-2xl text-[#F28C28] mb-0.5">
+              {s.value}
+            </div>
             <div className="text-xs text-[#78909C]">{s.label}</div>
           </div>
         ))}
@@ -144,12 +151,17 @@ export default function Home() {
       <section className="max-w-6xl mx-auto px-6 py-20">
         <div className="flex items-end justify-between mb-12">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-[#4D246A] mb-3">Em destaque</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#4D246A] mb-3">
+              Em destaque
+            </p>
             <h2 className="text-4xl md:text-5xl font-bold text-[#263238]">
               Esperando por você
             </h2>
           </div>
-          <Link href="/adotar" className="hidden md:block text-sm font-semibold text-[#F28C28] hover:underline underline-offset-4">
+          <Link
+            href="/adotar"
+            className="hidden md:block text-sm font-semibold text-[#F28C28] hover:underline underline-offset-4"
+          >
             Ver todos →
           </Link>
         </div>
@@ -161,19 +173,27 @@ export default function Home() {
               className="group bg-white rounded-2xl overflow-hidden border border-[#D1C4E9] hover:border-[#4D246A]/40 hover:shadow-xl hover:shadow-[#4D246A]/10 transition-all duration-300"
             >
               <div className="relative h-64 bg-[#EDE7F6] overflow-hidden">
-                <img
+                <Image
                   src={a.img}
                   alt={a.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  height={256}
+                  width={384}
                 />
-                <span className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full ${a.tagColor}`}>
+                <span
+                  className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full ${a.tagColor}`}
+                >
                   {a.tag}
                 </span>
               </div>
               <div className="p-5">
                 <div className="flex items-start justify-between mb-1">
-                  <h3 className="font-semibold text-xl text-[#263238]">{a.name}</h3>
-                  <span className="text-xs bg-[#EDE7F6] text-[#4D246A] px-2 py-1 rounded-full font-semibold">{a.age}</span>
+                  <h3 className="font-semibold text-xl text-[#263238]">
+                    {a.name}
+                  </h3>
+                  <span className="text-xs bg-[#EDE7F6] text-[#4D246A] px-2 py-1 rounded-full font-semibold">
+                    {a.age}
+                  </span>
                 </div>
                 <p className="text-sm text-[#546E7A] mb-4">{a.breed}</p>
                 <Link
@@ -188,7 +208,10 @@ export default function Home() {
         </div>
 
         <div className="md:hidden text-center mt-8">
-          <Link href="/adotar" className="text-sm font-semibold text-[#F28C28] hover:underline underline-offset-4">
+          <Link
+            href="/adotar"
+            className="text-sm font-semibold text-[#F28C28] hover:underline underline-offset-4"
+          >
             Ver todos os animais →
           </Link>
         </div>
@@ -202,8 +225,8 @@ export default function Home() {
               Perdeu ou encontrou um animal?
             </h2>
             <p className="text-[#D1C4E9] max-w-lg leading-relaxed">
-              Nossa rede de busca conecta tutores e encontradores em toda a região.
-              Cadastre imagens, localização e ajude a reunir famílias.
+              Nossa rede de busca conecta tutores e encontradores em toda a
+              região. Cadastre imagens, localização e ajude a reunir famílias.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 shrink-0">
@@ -226,7 +249,9 @@ export default function Home() {
       {/* Health Tips */}
       <section className="max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-12">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#4D246A] mb-3">Saúde Animal</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#4D246A] mb-3">
+            Saúde Animal
+          </p>
           <h2 className="text-4xl md:text-5xl font-bold text-[#263238]">
             Cuide bem do seu pet
           </h2>
@@ -234,10 +259,17 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {healthTips.map((tip) => (
-            <div key={tip.title} className="bg-white border border-[#D1C4E9] rounded-2xl p-6 hover:border-[#4D246A]/40 hover:shadow-md transition-all">
+            <div
+              key={tip.title}
+              className="bg-white border border-[#D1C4E9] rounded-2xl p-6 hover:border-[#4D246A]/40 hover:shadow-md transition-all"
+            >
               <div className="text-3xl mb-4">{tip.icon}</div>
-              <h3 className="font-semibold text-lg text-[#263238] mb-2">{tip.title}</h3>
-              <p className="text-sm text-[#546E7A] leading-relaxed">{tip.desc}</p>
+              <h3 className="font-semibold text-lg text-[#263238] mb-2">
+                {tip.title}
+              </h3>
+              <p className="text-sm text-[#546E7A] leading-relaxed">
+                {tip.desc}
+              </p>
             </div>
           ))}
         </div>
@@ -254,13 +286,15 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-[#1A1033]/85" />
         <div className="relative z-10 max-w-2xl mx-auto text-center py-20 px-6">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#F28C28] mb-4">Faça a diferença</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-[#F28C28] mb-4">
+            Faça a diferença
+          </p>
           <h2 className="text-4xl md:text-5xl font-bold text-[#EDE7F6] mb-5 leading-tight">
             Sua doação salva vidas
           </h2>
           <p className="text-[#78909C] leading-relaxed mb-8">
-            Com apenas R$ 30/mês você garante alimentação, vacinas e cuidados médicos
-            para um animal em reabilitação.
+            Com apenas R$ 30/mês você garante alimentação, vacinas e cuidados
+            médicos para um animal em reabilitação.
           </p>
           <Link
             href="/doacoes"

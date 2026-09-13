@@ -1,5 +1,6 @@
 import Link from "next/link";
-
+import Image from "next/image";
+import Logo from "./../../assets/abrigo-lambeijos.png";
 
 export default function Footer() {
   return (
@@ -7,7 +8,16 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-10">
         <div className="md:col-span-1">
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-2xl">🐾</span>
+            <span className="text-2xl">
+              {" "}
+              <Image
+                src={Logo}
+                alt="Logo"
+                width={32}
+                height={32}
+                className="h-8 w-8"
+              />
+            </span>
             <span className="font-semibold text-[#EDE7F6] text-xl">
               Abrigo Lambeijos
             </span>
@@ -74,10 +84,10 @@ export default function Footer() {
             Contato
           </h4>
           <ul className="space-y-2 text-sm text-[#78909C]">
-            <li>contato@larfeliz.org.br</li>
-            <li>(11) 3456-7890</li>
+            <li>contato@abrigolambeijos.com.br</li>
+            <li>(11) 3456-9999</li>
             <li>
-              Rua dos Pinheiros, 142
+              Rua Santo Amaro, 999
               <br />
               São Paulo, SP
             </li>

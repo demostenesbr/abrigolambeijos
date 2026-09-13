@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
+import Logo from "./../../assets/abrigo-lambeijos.png";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -28,7 +30,15 @@ export default function NavMenu() {
     <header className="sticky top-0 z-50 bg-[#FFF8F0]/95 backdrop-blur-sm border-b border-[#D1C4E9]">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl">🐾</span>
+          <span className="text-2xl">
+            <Image
+              src={Logo}
+              alt="Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+            />
+          </span>
           <span className="font-semibold text-[#4D246A] text-xl tracking-tight">
             Abrigo Lambeijos
           </span>
