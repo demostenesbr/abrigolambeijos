@@ -255,6 +255,7 @@ export default function Adopt() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   width={500}
                   height={420}
+                  loading="eager"
                 />
                 <span
                   className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full ${statusLabels[a.status].color}`}

@@ -177,8 +177,9 @@ export default function Home() {
                   src={a.img}
                   alt={a.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  height={256}
-                  width={384}
+                  height={500}
+                  width={600}
+                  loading="eager"
                 />
                 <span
                   className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full ${a.tagColor}`}
