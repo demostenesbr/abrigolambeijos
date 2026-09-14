@@ -1,55 +1,53 @@
-export default function NavMenu() {
+const menuByRole = {
+  ADOPTER: [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Minhas recomendações", href: "/dashboard/recomendacoes" },
+    { label: "Minhas solicitações", href: "/dashboard/solicitacoes" },
+    { label: "Meu perfil", href: "/dashboard/perfil" },
+  ],
+
+  PROTECTOR: [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Meus animais", href: "/dashboard/animais" },
+    { label: "Cadastrar animal", href: "/dashboard/animais/novo" },
+    { label: "Solicitações", href: "/dashboard/solicitacoes" },
+    { label: "Meu perfil", href: "/dashboard/perfil" },
+  ],
+
+  PARTNER: [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Minha organização", href: "/dashboard/organizacao" },
+    { label: "Participações", href: "/dashboard/participacoes" },
+    { label: "Meu perfil", href: "/dashboard/perfil" },
+  ],
+
+  ADMIN: [
+    { label: "Dashboard", href: "/admin/dashboard" },
+    { label: "Usuários", href: "/admin/usuarios" },
+    { label: "Animais", href: "/admin/animais" },
+    { label: "Adoções", href: "/admin/adocoes" },
+    { label: "Resgates", href: "/admin/resgates" },
+    { label: "Parceiros", href: "/admin/parceiros" },
+    { label: "Recomendações", href: "/admin/recomendacoes" },
+  ],
+};
+
+export default function NavMenu({ role, onClose }: { role: string; onClose: () => void }) {
+  const menuItems = menuByRole[role as keyof typeof menuByRole] || [];
   return (
     <nav className="bg-gray-800 p-4">
       <ul className="flex space-x-4">
-        <li>
-          <a href="/dashboard" className="text-white hover:text-gray-300">
-            Dashboard
-          </a>
-        </li>
-        <li>
-          <a href="/pets" className="text-white hover:text-gray-300">
-            Pets
-          </a>
-        </li>
-        <li>
-          <a href="/adopters" className="text-white hover:text-gray-300">
-            Adotantes
-          </a>
-        </li>
-        <li>
-          <a
-            href="/adoption-requests"
-            className="text-white hover:text-gray-300"
-          >
-            Solicitações
-          </a>
-        </li>
-        <li>
-          <a href="/adoptions" className="text-white hover:text-gray-300">
-            Adoções
-          </a>
-        </li>
-        <li>
-          <a href="/rescues" className="text-white hover:text-gray-300">
-            Resgates
-          </a>
-        </li>
-        <li>
-          <a href="/donations" className="text-white hover:text-gray-300">
-            Doações
-          </a>
-        </li>
-        <li>
-          <a href="/recommendations" className="text-white hover:text-gray-300">
-            Recomendações
-          </a>
-        </li>
-        <li>
-          <a href="/partners" className="text-white hover:text-gray-300">
-            Parceiros
-          </a>
-        </li>
+        {menuItems.map((item) => (
+          <li key={item.href}>
+            <a
+              href={item.href}
+              onClick={onClose}
+              className="text-white hover:text-gray-300"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
       </ul>
     </nav>
   );
