@@ -1,6 +1,9 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import VaccinatedIcon from "./../../assets/vaccinated.png";
+import NeuteredIcon from "./../../assets/castratated.png";
+import MicrochippedIcon from "./../../assets/microchipped.png";
 
 type Tab = "adotar" | "perdidos" | "encontrados";
 
@@ -16,6 +19,7 @@ const allAnimals = [
     img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500&h=420&fit=crop&auto=format",
     vaccinated: true,
     neutered: true,
+    microchipped: true,
   },
   {
     id: 2,
@@ -28,6 +32,7 @@ const allAnimals = [
     img: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=500&h=420&fit=crop&auto=format",
     vaccinated: true,
     neutered: true,
+    microchipped: true,
   },
   {
     id: 3,
@@ -40,6 +45,7 @@ const allAnimals = [
     img: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&h=420&fit=crop&auto=format",
     vaccinated: true,
     neutered: false,
+    microchipped: false,
   },
   {
     id: 4,
@@ -51,7 +57,8 @@ const allAnimals = [
     city: "São Paulo, SP",
     img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=500&h=420&fit=crop&auto=format",
     vaccinated: true,
-    neutered: true,
+    neutered: false,
+    microchipped: true,
   },
   {
     id: 5,
@@ -64,6 +71,7 @@ const allAnimals = [
     img: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&h=420&fit=crop&auto=format",
     vaccinated: true,
     neutered: true,
+    microchipped: true,
   },
   {
     id: 6,
@@ -76,6 +84,7 @@ const allAnimals = [
     img: "https://images.unsplash.com/photo-1612195583950-b8fd34c87093?w=500&h=420&fit=crop&auto=format",
     vaccinated: true,
     neutered: false,
+    microchipped: false,
   },
   {
     id: 7,
@@ -88,6 +97,7 @@ const allAnimals = [
     img: "https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=500&h=420&fit=crop&auto=format",
     vaccinated: false,
     neutered: false,
+    microchipped: false,
   },
   {
     id: 8,
@@ -100,6 +110,7 @@ const allAnimals = [
     img: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=500&h=420&fit=crop&auto=format",
     vaccinated: true,
     neutered: true,
+    microchipped: true,
   },
 ];
 
@@ -242,7 +253,7 @@ export default function Adopt() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((a) => (
             <div
               key={a.id}
@@ -277,13 +288,39 @@ export default function Adopt() {
                 <p className="text-xs text-[#78909C] mb-3">📍 {a.city}</p>
                 <div className="flex gap-2 mb-4 flex-wrap">
                   {a.vaccinated && (
-                    <span className="text-xs bg-[#43A047]/10 text-[#43A047] px-2 py-0.5 rounded-full border border-[#43A047]/20">
-                      ✓ Vacinado
+                    <span className="text-xs bg-[#43A047]/10 text-[#43A047] px-2 py-2 rounded-full border border-[#43A047]/20">
+                      {/*<Image
+                        src={VaccinatedIcon}
+                        alt="Cão Vacinado"
+                        title="Cão Vacinado"
+                        width={16}
+                        height={16}
+                        className="inline-block ml-1"
+                      /> */} Vacinado
                     </span>
                   )}
                   {a.neutered && (
-                    <span className="text-xs bg-[#43A047]/10 text-[#43A047] px-2 py-0.5 rounded-full border border-[#43A047]/20">
-                      ✓ Castrado
+                    <span className="text-xs bg-[#43A047]/10 text-[#43A047] px-2 py-2 rounded-full border border-[#43A047]/20">
+                      {/*<Image
+                        src={NeuteredIcon}
+                        alt="Cão Castrado"
+                        title="Cão Castrado"
+                        width={16}
+                        height={16}
+                        className="inline-block ml-1"
+                      /> */}Castrado
+                    </span>
+                  )}
+                  {a.microchipped && (
+                    <span className="text-xs bg-[#43A047]/10 text-[#43A047] px-2 py-2 rounded-full border border-[#43A047]/20">
+                      {/*<Image
+                        src={MicrochippedIcon}
+                        alt="Cão Microchipado"
+                        title="Cão Microchipado"
+                        width={16}
+                        height={16}
+                        className="inline-block ml-1"
+                      /> */}Microchipado
                     </span>
                   )}
                 </div>
