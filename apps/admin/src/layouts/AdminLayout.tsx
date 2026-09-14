@@ -1,5 +1,6 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { isAdminAuthenticated, signOutAdmin } from "../services/adminAuth";
 
 const navItems = [
   { to: "/admin", icon: "🏠", label: "Início", end: true },
@@ -17,8 +18,13 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  if (!isAdminAuthenticated()) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
   const handleLogout = () => {
-    navigate("/entrar");
+    signOutAdmin();
+    navigate("/admin/login", { replace: true });
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>

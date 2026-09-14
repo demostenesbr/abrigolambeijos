@@ -1,14 +1,19 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { signInAdmin } from "../../services/adminAuth";
 
 export default function AdminLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500);
+    setTimeout(() => {
+      signInAdmin();
+      navigate("/admin", { replace: true });
+    }, 1500);
   };
 
   const inputClass =
@@ -72,7 +77,7 @@ export default function AdminLogin() {
             <p className="text-sm text-[#546E7A]">
               Não tem conta?{" "}
               <Link
-                to="/cadastro"
+                to="/admin/cadastro"
                 className="text-[#4D246A] font-semibold hover:underline underline-offset-4"
               >
                 Cadastre-se

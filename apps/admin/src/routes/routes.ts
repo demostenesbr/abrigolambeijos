@@ -1,4 +1,5 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import React from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import AdminLogin from "../pages/login/main";
 import AdminRegister from "../pages/register/main";
@@ -14,14 +15,18 @@ import AdminPartners from "../pages/partners/main";
 
 export const router = createBrowserRouter([
   {
+    path: "/",
+    element: React.createElement(Navigate, { to: "/admin", replace: true }),
+  },
+  { path: "/admin/login", Component: AdminLogin },
+  { path: "/admin/cadastro", Component: AdminRegister },
+  {
     path: "/admin",
     Component: AdminLayout,
     children: [
       { index: true, Component: AdminDashboard },
       { path: "pets", Component: AdminPets },
       { path: "adotantes", Component: AdminAdopters },
-      { path: "login", Component: AdminLogin },
-      { path: "cadastro", Component: AdminRegister },
       { path: "solicitacoes", Component: AdminAdoptionRequests },
       { path: "adocoes", Component: AdiminAdoptions },
       { path: "resgates", Component: AdminRescues },
