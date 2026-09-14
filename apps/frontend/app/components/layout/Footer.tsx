@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "./../../assets/abrigo-lambeijos.png";
+import Facebook from "./../../assets/facebook.svg";
+import Instagram from "./../../assets/instagram.svg";
 
 export default function Footer() {
   return (
@@ -27,9 +29,24 @@ export default function Footer() {
             amar.
           </p>
           <div className="flex gap-3 mt-6">
-            <svg className="icon" role="presentation" aria-hidden="true">
-              <use href="/icons.svg#documentation-icon"></use>
-            </svg>
+            <Link href="https://www.facebook.com/abrigolambeijos" target="_blank" className="social-icon">
+              <Image
+                src={Facebook}
+                alt="Facebook Icon"
+                width={24}
+                height={24}
+                className="h-6 w-6 img-srg-image"
+              />
+            </Link>
+            <Link href="https://www.instagram.com/abrigolambeijos" target="_blank" className="social-icon">
+              <Image
+                src={Instagram}
+                alt="Instagram Icon"
+                width={24}
+                height={24}
+                className="h-6 w-6 img-srg-image"
+              />
+            </Link>
           </div>
         </div>
 
