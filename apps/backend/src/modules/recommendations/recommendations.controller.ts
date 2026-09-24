@@ -10,12 +10,18 @@ import {
 import { RecommendationsService } from './recommendations.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
+import { GenerateRecommendationsDto } from './dto/generate-recommendations.dto';
 
 @Controller('recommendations')
 export class RecommendationsController {
   constructor(
     private readonly recommendationsService: RecommendationsService,
   ) {}
+
+  @Post('generate')
+  generate(@Body() generateRecommendationsDto: GenerateRecommendationsDto) {
+    return this.recommendationsService.generate(generateRecommendationsDto);
+  }
 
   @Post()
   create(@Body() createRecommendationDto: CreateRecommendationDto) {
