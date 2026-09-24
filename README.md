@@ -29,19 +29,19 @@ abrigolambeijos/
     ├── backend/
     │   ├── NestJS
     │   ├── Prisma
-    │   ├── MySQL
+    │   ├── PostgreSQL
     │   │
     │   └── src/
     │       └── modules/
     │           ├── auth/
     │           ├── users/
     │           ├── pets/
-│   │           ├── adopters/
-│   │           ├── adoptions/
-│   │           ├── rescues/
-│   │           ├── donations/
-│   │           └── recommendations/
-    │           └── ai/
+    │           ├── adopters/
+    │           ├── adoptions/
+    │           ├── rescues/
+    │           ├── donations/
+    │           └── recommendations/
+    │           └── ai/ (optional)
     │               ├── llm/
     │               ├── prompts/
     │               ├── tools/
@@ -49,18 +49,69 @@ abrigolambeijos/
     │
     ├── frontend/
     │   └── Next.js + React
+    |   |
+    |   └── app/
+    |       └── adotar (page)
+    |       └── animais (page)
+    |       └── assets
+    |       └── cadastro (page)
+    |       └── components
+    |       └── contato (page)
+    |       └── doacoes (page)
+    |       └── entrar (page)
+    |       └── hooks
+    |       └── lib
+    |       └── pages
+    |       └── parceiros (page)
+    |       └── perdidos (page)
+    |       └── privacidade (page)
+    |       └── recomendacao (page)
+    |       └── services
+    |       └── sobre (page)
+    |       └── styles
+    |       └── terms
+    |       └── types
     │
     ├── admin/
-    │   └── React + Vite
+    │   |── React + Vite
+    |   |
+    |   └── src/
+    |       └── assets
+    |       └── config
+    |       └── contexts
+    |       └── hooks
+    |       └── layouts
+    |       └── pages
+    |       └── routes
+    |       └── services
+    |       └── styles
+    |       └── types
+    |       └── types
+    |       └── utils 
     │
     ├── ml/
-    ├── datasets/
-    ├── notebooks/
-    ├── training/
-    ├── evaluation/
-    └── models/
-        └── animal-recommender/
+    |   └── .venv (Local Python)
+    |   |   artfacts/
+    |   |       ├── models/
+    |   |       └── reports
+    |   ├── datasets/
+    |   |       |── external
+    |   |       |── processed
+    |   |       └── raw
+    |── models/
+    |       └── animal-recommender/
+    │
+    |── notebooks/
+    │
+    └── src/
+        └── config
+        └── data
+        └── evaluation
+        └── features
+        └── models
+        └── training
 ```
+
 ---
 
 ## 🛠️ Tecnologias Utilizadas
