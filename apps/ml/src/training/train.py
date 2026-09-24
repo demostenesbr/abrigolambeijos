@@ -14,11 +14,7 @@ Uso:
 from datetime import datetime, timezone
 
 import joblib
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
 
 from ..config.settings import (
     EVALUATION_REPORT_PATH,
@@ -35,15 +31,17 @@ from ..evaluation.evaluator import evaluate_pipeline
 from ..evaluation.reports import save_json_report
 from ..features.feature_builder import build_features_and_target
 from ..features.transformer import build_pipeline
+from ..models.decision_tree import build_decision_tree
+from ..models.knn import build_knn
+from ..models.logistic_regression import build_logistic_regression
+from ..models.random_forest import build_random_forest
 from .cross_validation import cross_validate_pipeline
 
 CANDIDATES = {
-    "decision_tree": DecisionTreeClassifier(random_state=RANDOM_STATE, max_depth=6),
-    "random_forest": RandomForestClassifier(
-        random_state=RANDOM_STATE, n_estimators=200, max_depth=8
-    ),
-    "logistic_regression": LogisticRegression(max_iter=1000, random_state=RANDOM_STATE),
-    "knn": KNeighborsClassifier(n_neighbors=7),
+    "decision_tree": build_decision_tree(RANDOM_STATE),
+    "random_forest": build_random_forest(RANDOM_STATE),
+    "logistic_regression": build_logistic_regression(RANDOM_STATE),
+    "knn": build_knn(),
 }
 
 
