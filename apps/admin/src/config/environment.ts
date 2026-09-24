@@ -1,5 +1,4 @@
-export default class ConfigEnvironment {
-  constructor() {
-    console.log("ConfigEnvironment initialized");
-  }
-}
+// Base URL da API do backend (NestJS), configurável via .env / docker-compose
+export const API_URL: string =
+  import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+

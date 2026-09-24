@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const connectionString = process.env.DATABASE_URL ?? '';
 
@@ -14,17 +15,22 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function seedUsers() {
+  const passwordHash = await bcrypt.hash('changeme123', 10);
   await prisma.users.createMany({
     data: [
       {
         email: 'admin@abrigolambeijos.com.br',
         name: 'Admin',
-        rules: 'admin',
+        password: passwordHash,
+        role: UserRole.ADMIN,
+        status: UserStatus.ACTIVE,
       },
       {
         email: 'contact@abrigolambeijos.com.br',
         name: 'User',
-        rules: 'user',
+        password: passwordHash,
+        role: UserRole.ADOPTER,
+        status: UserStatus.ACTIVE,
       },
     ],
     skipDuplicates: true,
@@ -36,28 +42,36 @@ async function seedPets() {
   await prisma.pets.createMany({
     data: [
       {
+        animalname: 'Buddy',
+        rganimal: 'RG-0001',
+        dateentry: new Date(),
         name: 'Buddy',
-        species: 'Dog',
-        breed: 'Golden Retriever',
-        age: 3,
-        size: 'Large',
-        type: 'Canine',
+        race: 'Golden Retriever',
         gender: 'Male',
-        description: 'Friendly and playful dog.',
-        location: 'São Paulo, SP',
-        image: 'https://example.com/images/buddy.jpg',
+        microchipped: false,
+        castrated: true,
+        coattypecoloration: 'Curto, dourado',
+        predominantcoatcolor: 'Dourado',
+        signsanddistinctive: 'Mancha branca no peito',
+        estimatedchronologicalage: 3,
+        birthdate: new Date('2023-01-01'),
+        size: 'Large',
       },
       {
+        animalname: 'Whiskers',
+        rganimal: 'RG-0002',
+        dateentry: new Date(),
         name: 'Whiskers',
-        species: 'Dog',
-        breed: 'Bulldog',
-        age: 2,
-        size: 'Small',
-        type: 'Canine',
+        race: 'Bulldog',
         gender: 'Female',
-        description: 'Cute and affectionate dog.',
-        location: 'Rio de Janeiro, RJ',
-        image: 'https://example.com/images/whiskers.jpg',
+        microchipped: false,
+        castrated: true,
+        coattypecoloration: 'Curto, branco e marrom',
+        predominantcoatcolor: 'Branco',
+        signsanddistinctive: 'Orelha caída',
+        estimatedchronologicalage: 2,
+        birthdate: new Date('2024-01-01'),
+        size: 'Small',
       },
     ],
     skipDuplicates: true,

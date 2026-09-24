@@ -1,26 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
 
 @Injectable()
 export class RecommendationsService {
+  constructor(private readonly prisma: PrismaService) {}
+
   create(createRecommendationDto: CreateRecommendationDto) {
-    return 'This action adds a new recommendation';
+    return this.prisma.recommendations.create({
+      data: createRecommendationDto,
+    });
   }
 
   findAll() {
-    return `This action returns all recommendations`;
+    return this.prisma.recommendations.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} recommendation`;
+  async findOne(id: number) {
+    const recommendation = await this.prisma.recommendations.findUnique({
+      where: { id },
+    });
+    if (!recommendation) {
+      throw new NotFoundException(`Recomendação #${id} não encontrada.`);
+    }
+    return recommendation;
   }
 
-  update(id: number, updateRecommendationDto: UpdateRecommendationDto) {
-    return `This action updates a #${id} recommendation`;
+  async update(id: number, updateRecommendationDto: UpdateRecommendationDto) {
+    await this.findOne(id);
+    return this.prisma.recommendations.update({
+      where: { id },
+      data: updateRecommendationDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} recommendation`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return this.prisma.recommendations.delete({ where: { id } });
   }
 }

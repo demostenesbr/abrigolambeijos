@@ -1,8 +1,26 @@
 {
+  "name": "abrigolambeijos",
+  "private": true,
+  "workspaces": [
+    "apps/backend",
+    "apps/frontend",
+    "apps/admin"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose stop db",
+    "backend:dev": "npm run start:dev --workspace=backend",
+    "frontend:dev": "npm run dev --workspace=frontend",
+    "admin:dev": "npm run dev --workspace=admin",
+    "dev": "concurrently -n DB,BACKEND,FRONTEND,ADMIN -c blue,green,yellow,magenta \"npm:db:up\" \"npm run backend:dev\" \"npm run frontend:dev\" \"npm run admin:dev\"",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
   "dependencies": {
-    "dontenv": "^17.4.2"
+    "dotenv": "^17.4.2"
   },
   "devDependencies": {
+    "concurrently": "^9.1.0",
     "eslint": "^8.47.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.1.3",

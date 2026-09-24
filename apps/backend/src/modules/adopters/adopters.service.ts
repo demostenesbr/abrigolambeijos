@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateAdopterDto } from './dto/create-adopter.dto';
 import { UpdateAdopterDto } from './dto/update-adopter.dto';
 
 @Injectable()
 export class AdoptersService {
+  constructor(private readonly prisma: PrismaService) {}
+
   create(createAdopterDto: CreateAdopterDto) {
-    return 'This action adds a new adopter';
+    return this.prisma.adopters.create({ data: createAdopterDto });
   }
 
   findAll() {
-    return `This action returns all adopters`;
+    return this.prisma.adopters.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} adopter`;
+  async findOne(id: number) {
+    const adopter = await this.prisma.adopters.findUnique({ where: { id } });
+    if (!adopter) {
+      throw new NotFoundException(`Adotante #${id} não encontrado.`);
+    }
+    return adopter;
   }
 
-  update(id: number, updateAdopterDto: UpdateAdopterDto) {
-    return `This action updates a #${id} adopter`;
+  async update(id: number, updateAdopterDto: UpdateAdopterDto) {
+    await this.findOne(id);
+    return this.prisma.adopters.update({
+      where: { id },
+      data: updateAdopterDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} adopter`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return this.prisma.adopters.delete({ where: { id } });
   }
 }

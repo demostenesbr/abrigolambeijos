@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import VaccinatedIcon from "./../../assets/vaccinated.png";
+/*import VaccinatedIcon from "./../../assets/vaccinated.png";
 import NeuteredIcon from "./../../assets/castratated.png";
 import MicrochippedIcon from "./../../assets/microchipped.png";
-
+*/
 type Tab = "adotar" | "perdidos" | "encontrados";
 
 const allAnimals = [

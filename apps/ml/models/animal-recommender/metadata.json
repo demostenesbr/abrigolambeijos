@@ -1,0 +1,29 @@
+{
+  "model_name": "random_forest",
+  "trained_at": "2026-09-24T17:38:04.440613+00:00",
+  "feature_columns": [
+    "available_time",
+    "activity_level",
+    "pet_energy_level",
+    "pet_sociability",
+    "exercise_need",
+    "apartment_adaptability",
+    "dog_experience",
+    "home_type",
+    "children_age_group",
+    "other_pets_type",
+    "preferred_size",
+    "preferred_age",
+    "pet_temperament",
+    "has_yard",
+    "has_children",
+    "has_other_pets",
+    "children_compatibility",
+    "dogs_compatibility",
+    "cats_compatibility",
+    "pet_age"
+  ],
+  "train_size": 600,
+  "test_size": 150,
+  "cv_f1_mean": 0.8123293505370922
+}

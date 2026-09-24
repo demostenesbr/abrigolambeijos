@@ -147,9 +147,9 @@ export default function Login() {
             <div className="flex-1 h-px bg-[#D1C4E9]" />
           </div>
 
-          <button className="w-full border border-[#D1C4E9] bg-white text-[#37474F] font-semibold py-3.5 rounded-full hover:bg-[#EDE7F6] transition-colors text-sm flex items-center justify-center gap-2">
+          {/*<button className="w-full border border-[#D1C4E9] bg-white text-[#37474F] font-semibold py-3.5 rounded-full hover:bg-[#EDE7F6] transition-colors text-sm flex items-center justify-center gap-2">
             <span>G</span> Entrar com Google
-          </button>
+          </button>*/}
 
           <p className="text-xs text-center text-[#78909C] mt-6 leading-relaxed">
             Ao entrar, você concorda com nossos{" "}

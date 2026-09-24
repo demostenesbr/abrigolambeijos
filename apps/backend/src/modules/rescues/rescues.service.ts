@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateRescueDto } from './dto/create-rescue.dto';
 import { UpdateRescueDto } from './dto/update-rescue.dto';
 
 @Injectable()
 export class RescuesService {
+  constructor(private readonly prisma: PrismaService) {}
+
   create(createRescueDto: CreateRescueDto) {
-    return 'This action adds a new rescue';
+    return this.prisma.rescues.create({ data: createRescueDto });
   }
 
   findAll() {
-    return `This action returns all rescues`;
+    return this.prisma.rescues.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} rescue`;
+  async findOne(id: number) {
+    const rescue = await this.prisma.rescues.findUnique({ where: { id } });
+    if (!rescue) {
+      throw new NotFoundException(`Resgate #${id} não encontrado.`);
+    }
+    return rescue;
   }
 
-  update(id: number, updateRescueDto: UpdateRescueDto) {
-    return `This action updates a #${id} rescue`;
+  async update(id: number, updateRescueDto: UpdateRescueDto) {
+    await this.findOne(id);
+    return this.prisma.rescues.update({
+      where: { id },
+      data: updateRescueDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} rescue`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return this.prisma.rescues.delete({ where: { id } });
   }
 }
