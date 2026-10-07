@@ -95,9 +95,13 @@ def generate_adopters(rng: random.Random) -> pd.DataFrame:
                 "home_type": rng.choice(["Apartment", "House"]),
                 "has_yard": _bool(rng, 0.4),
                 "has_children": has_children,
-                "children_age_group": rng.choice(["0-5", "6-12", "13-17"]) if has_children else "N/A",
+                "children_age_group": (
+                    rng.choice(["CHILDREN_0_5", "CHILDREN_6_12", "CHILDREN_13_17"])
+                    if has_children
+                    else "NOT_APPLICABLE"
+                ),
                 "has_other_pets": has_other_pets,
-                "other_pets_type": rng.choice(["dog", "cat"]) if has_other_pets else "N/A",
+                "other_pets_type": rng.choice(["DOG", "CAT"]) if has_other_pets else "NONE",
                 "dog_experience": rng.choice(["Beginner", "Intermediate", "Experienced"]),
                 "available_time": rng.choice(LEVELS),
                 "activity_level": rng.choice(LEVELS),
@@ -125,9 +129,9 @@ def _compatibility_score(adopter: pd.Series, pet: pd.Series) -> float:
     criteria.append(not adopter["has_children"] or bool(pet["children_compatibility"]))
 
     # 4. Adotante com outros animais exige compatibilidade com o tipo correspondente
-    if adopter["has_other_pets"] and adopter["other_pets_type"] == "dog":
+    if adopter["has_other_pets"] and adopter["other_pets_type"] == "DOG":
         criteria.append(bool(pet["dogs_compatibility"]))
-    elif adopter["has_other_pets"] and adopter["other_pets_type"] == "cat":
+    elif adopter["has_other_pets"] and adopter["other_pets_type"] == "CAT":
         criteria.append(bool(pet["cats_compatibility"]))
     else:
         criteria.append(True)

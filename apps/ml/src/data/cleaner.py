@@ -22,4 +22,8 @@ def clean_compatibility_dataset(df: pd.DataFrame) -> pd.DataFrame:
     for column in boolean_columns:
         if column in df.columns:
             df[column] = df[column].astype(bool)
+    if "has_children" in df.columns and "children_age_group" in df.columns:
+        df.loc[~df["has_children"], "children_age_group"] = "NOT_APPLICABLE"
+    if "has_other_pets" in df.columns and "other_pets_type" in df.columns:
+        df.loc[~df["has_other_pets"], "other_pets_type"] = "NONE"
     return df.reset_index(drop=True)
