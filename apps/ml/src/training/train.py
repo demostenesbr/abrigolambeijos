@@ -15,7 +15,8 @@ from datetime import datetime, timezone
 
 import joblib
 import sklearn
-from sklearn.model_selection import train_test_split
+from sklearn.dummy import DummyClassifier
+from sklearn.model_selection import GroupShuffleSplit
 
 from ..config.settings import (
     EVALUATION_REPORT_PATH,
@@ -49,16 +50,30 @@ CANDIDATES = {
 def main() -> None:
     df = clean_compatibility_dataset(load_compatibility_dataset())
     X, y = build_features_and_target(df)
+    groups = df["adopter_id"]
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
+    # Split por adotante: evita o mesmo perfil de adotante em treino e teste
+    train_idx, test_idx = next(
+        GroupShuffleSplit(n_splits=1, test_size=TEST_SIZE, random_state=RANDOM_STATE).split(
+            X, y, groups
+        )
     )
+    X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+    y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+    groups_train = groups.iloc[train_idx]
 
     cv_results = {}
     for name, estimator in CANDIDATES.items():
         pipeline = build_pipeline(estimator)
-        cv_results[name] = cross_validate_pipeline(pipeline, X_train, y_train)
+        cv_results[name] = cross_validate_pipeline(pipeline, X_train, y_train, groups_train)
         print(f"[CV] {name}: F1 médio = {cv_results[name]['f1_mean']:.3f}")
+
+    # Baseline (sempre a classe majoritária) — referência mínima, não entra na escolha
+    baseline = build_pipeline(DummyClassifier(strategy="most_frequent"))
+    baseline_cv = cross_validate_pipeline(baseline, X_train, y_train, groups_train)
+    baseline.fit(X_train, y_train)
+    baseline_test = evaluate_pipeline(baseline, X_test, y_test)
+    print(f"[BASELINE] F1 CV = {baseline_cv['f1_mean']:.3f} | teste = {baseline_test['f1']:.3f}")
 
     best_name = max(cv_results, key=lambda name: cv_results[name]["f1_mean"])
     print(f"Melhor modelo (CV): {best_name}")
@@ -82,7 +97,13 @@ def main() -> None:
     }
     save_json_report(metadata, MODEL_METADATA_PATH)
     save_json_report(
-        {"candidates": cv_results, "selected_model": best_name}, EVALUATION_REPORT_PATH
+        {
+            "candidates": cv_results,
+            "selected_model": best_name,
+            "baseline_most_frequent": {"cv": baseline_cv, "test": baseline_test},
+            "split": "GroupShuffleSplit por adopter_id; CV com StratifiedGroupKFold",
+        },
+        EVALUATION_REPORT_PATH,
     )
     save_json_report(test_metrics, METRICS_PATH)
 

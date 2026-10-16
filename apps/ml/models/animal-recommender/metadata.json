@@ -1,6 +1,6 @@
 {
   "model_name": "random_forest",
-  "trained_at": "2026-10-16T16:34:22.431216+00:00",
+  "trained_at": "2026-10-16T19:19:28.655372+00:00",
   "sklearn_version": "1.9.1",
   "feature_columns": [
     "available_time",
@@ -26,5 +26,5 @@
   ],
   "train_size": 600,
   "test_size": 150,
-  "cv_f1_mean": 0.8123293505370922
+  "cv_f1_mean": 0.8159692875226197
 }

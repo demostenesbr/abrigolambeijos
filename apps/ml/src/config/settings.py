@@ -15,6 +15,7 @@ MODEL_DIR = ML_ROOT / "models" / "animal-recommender"
 REPORTS_DIR = ML_ROOT / "artfacts" / "reports"
 
 PETS_CSV = RAW_DIR / "pets.csv"
+REAL_PETS_CSV = RAW_DIR / "real_pets.csv"
 COMPATIBILITY_CSV = RAW_DIR / "compatibility_dataset.csv"
 
 MODEL_PATH = MODEL_DIR / "model.joblib"
