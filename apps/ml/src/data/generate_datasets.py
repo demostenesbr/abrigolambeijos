@@ -28,7 +28,7 @@ from pathlib import Path
 import pandas as pd
 
 SEED = 42
-NUM_PETS = 300
+NUM_PETS = 1500
 NUM_ADOPTERS = 150
 PAIRS_PER_ADOPTER = 5
 COMPATIBILITY_THRESHOLD = 0.7  # >=70% dos critérios batendo = compatível
