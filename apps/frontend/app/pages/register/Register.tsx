@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "./../../assets/abrigo-lambeijos.png";
+import { authService, errorMessage } from "../../services/auth";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -16,14 +17,33 @@ export default function Register() {
     agreed: false,
   });
   const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password !== form.confirm) {
-      alert("As senhas não coincidem.");
+    setError(null);
+    if (form.password.length < 8) {
+      setError("A senha deve ter no mínimo 8 caracteres.");
       return;
     }
-    setDone(true);
+    if (form.password !== form.confirm) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await authService.register({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+      });
+      setDone(true);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass =
@@ -246,11 +266,18 @@ export default function Register() {
               </span>
             </label>
 
+            {error && (
+              <p role="alert" className="text-sm text-red-600">
+                {error}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-[#F28C28] text-white font-semibold py-3.5 rounded-full hover:bg-[#D97820] transition-all active:scale-95"
+              disabled={loading}
+              className="w-full bg-[#F28C28] text-white font-semibold py-3.5 rounded-full hover:bg-[#D97820] transition-all active:scale-95 disabled:opacity-60"
             >
-              Criar conta grátis
+              {loading ? "Criando..." : "Criar conta grátis"}
             </button>
           </form>
         </div>

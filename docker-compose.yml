@@ -38,6 +38,7 @@ services:
       - "3001:3001"
     volumes:
       - ./apps/backend:/usr/src/app
+      - ./apps/ml:/usr/src/ml:ro
     command: sh -c "npm install && npm run start:dev"
 
   frontend:

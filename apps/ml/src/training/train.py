@@ -14,6 +14,7 @@ Uso:
 from datetime import datetime, timezone
 
 import joblib
+import sklearn
 from sklearn.model_selection import train_test_split
 
 from ..config.settings import (
@@ -73,6 +74,7 @@ def main() -> None:
     metadata = {
         "model_name": best_name,
         "trained_at": datetime.now(timezone.utc).isoformat(),
+        "sklearn_version": sklearn.__version__,
         "feature_columns": list(X.columns),
         "train_size": len(X_train),
         "test_size": len(X_test),

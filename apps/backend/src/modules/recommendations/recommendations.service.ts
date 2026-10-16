@@ -3,7 +3,9 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
 import { GenerateRecommendationsDto } from './dto/generate-recommendations.dto';
-import { MlBridgeService } from './ml-bridge.service';
+import { AdopterProfileDto } from './dto/generate-recommendations.dto';
+import { MlBridgeService, MlRecommendation } from './ml-bridge.service';
+import type { AuthenticatedUser } from '../../common/guards/jwt-auth.guard';
 
 @Injectable()
 export class RecommendationsService {
@@ -56,12 +58,43 @@ export class RecommendationsService {
 
     const topN = dto.topN ?? 5;
     const ranked = await this.mlBridge.recommendPets(dto.profile, topN);
+    return this.persist(dto.adopterId, ranked);
+  }
 
+  // Vincula o usuário logado a um Adopter (por e-mail) e gera o ranking dele
+  async generateForUser(
+    user: AuthenticatedUser,
+    profile: AdopterProfileDto,
+    topN = 5,
+  ) {
+    const account = await this.prisma.users.findUnique({
+      where: { id: user.id },
+    });
+    const adopter = await this.prisma.adopters.upsert({
+      where: { email: user.email },
+      update: {},
+      create: { email: user.email, name: account?.name ?? user.email },
+    });
+
+    const ranked = await this.mlBridge.recommendPets(profile, topN);
+    await this.persist(adopter.id, ranked);
+    return {
+      adopterId: adopter.id,
+      results: ranked.map((item) => ({
+        petId: item.pet_id,
+        name: item.name,
+        species: item.species,
+        score: item.compatibility_score,
+      })),
+    };
+  }
+
+  private persist(adopterId: number, ranked: MlRecommendation[]) {
     return Promise.all(
       ranked.map((item) =>
         this.prisma.recommendations.create({
           data: {
-            adopterId: dto.adopterId,
+            adopterId,
             animalId: item.pet_id,
             recommendationText: `Compatibilidade prevista de ${(item.compatibility_score * 100).toFixed(1)}% com ${item.name} (${item.species}).`,
           },

@@ -1,6 +1,7 @@
 {
   "model_name": "random_forest",
-  "trained_at": "2026-10-07T14:43:34.156933+00:00",
+  "trained_at": "2026-10-16T16:34:22.431216+00:00",
+  "sklearn_version": "1.9.1",
   "feature_columns": [
     "available_time",
     "activity_level",

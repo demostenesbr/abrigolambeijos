@@ -3,16 +3,28 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import Logo from "./../../assets/abrigo-lambeijos.png";
+import { authService, errorMessage } from "../../services/auth";
 
 export default function Login() {
+  const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500);
+    setError(null);
+    try {
+      await authService.login(form.email, form.password);
+      router.push("/recomendacao");
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass =
@@ -131,6 +143,12 @@ export default function Login() {
                 className={inputClass}
               />
             </div>
+
+            {error && (
+              <p role="alert" className="text-sm text-red-600">
+                {error}
+              </p>
+            )}
 
             <button
               type="submit"

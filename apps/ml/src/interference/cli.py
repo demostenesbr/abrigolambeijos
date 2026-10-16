@@ -12,6 +12,7 @@ import json
 import sys
 
 from ..data.loader import load_pets
+from .predictor import InvalidFeaturesError
 from .recommender import recommend_pets
 
 
@@ -21,7 +22,11 @@ def main() -> None:
     top_n = payload.get("top_n", 5)
 
     pets = load_pets()
-    ranked = recommend_pets(profile, pets, top_n=top_n)
+    try:
+        ranked = recommend_pets(profile, pets, top_n=top_n)
+    except InvalidFeaturesError as error:
+        print(f"Entrada inválida: {error}", file=sys.stderr)
+        sys.exit(2)
 
     result = ranked[["id", "name", "species", "compatibility_score"]].rename(
         columns={"id": "pet_id"}

@@ -4,7 +4,6 @@ import {
   IsIn,
   IsInt,
   IsOptional,
-  IsString,
   Max,
   Min,
   ValidateNested,
@@ -23,13 +22,13 @@ export class AdopterProfileDto {
   @IsBoolean()
   has_children: boolean;
 
-  @IsString()
+  @IsIn(['CHILDREN_0_5', 'CHILDREN_6_12', 'CHILDREN_13_17', 'NOT_APPLICABLE'])
   children_age_group: string;
 
   @IsBoolean()
   has_other_pets: boolean;
 
-  @IsString()
+  @IsIn(['CAT', 'DOG', 'NONE'])
   other_pets_type: string;
 
   @IsIn(['Beginner', 'Intermediate', 'Experienced'])
@@ -44,8 +43,20 @@ export class AdopterProfileDto {
   @IsIn(['Small', 'Medium', 'Large'])
   preferred_size: string;
 
-  @IsString()
+  @IsIn(['Filhote', 'Adulto', 'Idoso'])
   preferred_age: string;
+}
+
+export class GenerateMyRecommendationsDto {
+  @ValidateNested()
+  @Type(() => AdopterProfileDto)
+  profile: AdopterProfileDto;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  topN?: number;
 }
 
 export class GenerateRecommendationsDto {
