@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
@@ -56,9 +60,34 @@ export class RecommendationsService {
       throw new NotFoundException(`Adotante #${dto.adopterId} não encontrado.`);
     }
 
-    const topN = dto.topN ?? 5;
-    const ranked = await this.mlBridge.recommendPets(dto.profile, topN);
+    const ranked = await this.rank(dto.profile, dto.topN ?? 5);
     return this.persist(dto.adopterId, ranked);
+  }
+
+  // Pontua os pets reais do banco (Prisma Pets) com o modelo de ML
+  private async rank(profile: AdopterProfileDto, topN: number) {
+    const pets = await this.prisma.pets.findMany();
+    if (pets.length === 0) {
+      throw new BadRequestException('Nenhum pet cadastrado para recomendar.');
+    }
+    return this.mlBridge.recommendPets(
+      profile,
+      topN,
+      pets.map((pet) => ({
+        id: pet.id,
+        name: pet.name,
+        species: pet.species,
+        age: pet.estimatedchronologicalage,
+        energy_level: pet.energyLevel,
+        temperament: pet.temperament,
+        sociability: pet.sociability,
+        exercise_need: pet.exerciseNeed,
+        apartment_adaptability: pet.apartmentAdaptability,
+        children_compatibility: pet.childrenCompatibility,
+        dogs_compatibility: pet.dogsCompatibility,
+        cats_compatibility: pet.catsCompatibility,
+      })),
+    );
   }
 
   // Vincula o usuário logado a um Adopter (por e-mail) e gera o ranking dele
@@ -76,7 +105,7 @@ export class RecommendationsService {
       create: { email: user.email, name: account?.name ?? user.email },
     });
 
-    const ranked = await this.mlBridge.recommendPets(profile, topN);
+    const ranked = await this.rank(profile, topN);
     await this.persist(adopter.id, ranked);
     return {
       adopterId: adopter.id,

@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { spawn } from 'child_process';
 import * as path from 'path';
 import { AdopterProfileDto } from './dto/generate-recommendations.dto';
@@ -11,6 +15,24 @@ export interface MlRecommendation {
 }
 
 const ML_TIMEOUT_MS = 30_000; // cold start do Python + pandas/sklearn leva ~15-20s
+const ML_INVALID_INPUT_EXIT_CODE = 2;
+
+export interface MlPetInput {
+  id: number;
+  name: string;
+  species: string;
+  age: number;
+  energy_level: string;
+  temperament: string;
+  sociability: string;
+  exercise_need: string;
+  apartment_adaptability: string;
+  children_compatibility: boolean;
+  dogs_compatibility: boolean;
+  cats_compatibility: boolean;
+}
+
+class MlInvalidInputError extends Error {}
 
 @Injectable()
 export class MlBridgeService {
@@ -30,6 +52,7 @@ export class MlBridgeService {
   async recommendPets(
     profile: AdopterProfileDto,
     topN: number,
+    pets?: MlPetInput[],
   ): Promise<MlRecommendation[]> {
     const child = spawn(this.pythonExecutable, ['-m', 'src.interference.cli'], {
       cwd: this.mlAppPath,
@@ -58,6 +81,10 @@ export class MlBridgeService {
 
       child.on('close', (code) => {
         clearTimeout(timer);
+        if (code === ML_INVALID_INPUT_EXIT_CODE) {
+          reject(new MlInvalidInputError(stderr.trim()));
+          return;
+        }
         if (code !== 0) {
           reject(
             new Error(stderr || `Processo ML encerrou com código ${code}.`),
@@ -71,9 +98,12 @@ export class MlBridgeService {
         }
       });
 
-      child.stdin.write(JSON.stringify({ profile, top_n: topN }));
+      child.stdin.write(JSON.stringify({ profile, top_n: topN, pets }));
       child.stdin.end();
     }).catch((error: Error) => {
+      if (error instanceof MlInvalidInputError) {
+        throw new BadRequestException(error.message);
+      }
       throw new InternalServerErrorException(
         `Falha ao gerar recomendações via ML: ${error.message}`,
       );

@@ -59,6 +59,16 @@ model Pets {
     behavioralprofile         String?
     healthcondition           String?
     redemptioncondition       String?
+    // Atributos usados pelo modelo de ML; os defaults são valores neutros/conservadores
+    species                   String   @default("Dog")
+    energyLevel               String   @default("Medium")
+    temperament               String   @default("Affectionate")
+    sociability               String   @default("Medium")
+    exerciseNeed              String   @default("Medium")
+    apartmentAdaptability     String   @default("Medium")
+    childrenCompatibility     Boolean  @default(false)
+    dogsCompatibility         Boolean  @default(false)
+    catsCompatibility         Boolean  @default(false)
     createdAt                 DateTime @default(now())
     updatedAt                 DateTime @updatedAt
 

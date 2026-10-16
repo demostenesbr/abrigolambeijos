@@ -11,6 +11,8 @@ Uso:
 import json
 import sys
 
+import pandas as pd
+
 from ..data.loader import load_pets
 from .predictor import InvalidFeaturesError
 from .recommender import recommend_pets
@@ -21,7 +23,8 @@ def main() -> None:
     profile = payload["profile"]
     top_n = payload.get("top_n", 5)
 
-    pets = load_pets()
+    # `pets` opcional (formato de pets.csv); sem ele usa o catálogo sintético
+    pets = pd.DataFrame(payload["pets"]) if payload.get("pets") else load_pets()
     try:
         ranked = recommend_pets(profile, pets, top_n=top_n)
     except InvalidFeaturesError as error:

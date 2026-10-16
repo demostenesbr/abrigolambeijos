@@ -1,11 +1,14 @@
 import {
   IsBoolean,
   IsDateString,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
   Min,
 } from 'class-validator';
+
+const LEVELS = ['Low', 'Medium', 'High'];
 
 export class CreatePetDto {
   @IsString()
@@ -70,4 +73,40 @@ export class CreatePetDto {
   @IsOptional()
   @IsString()
   redemptioncondition?: string;
+
+  @IsOptional()
+  @IsIn(['Dog', 'Cat'])
+  species?: string;
+
+  @IsOptional()
+  @IsIn(LEVELS)
+  energyLevel?: string;
+
+  @IsOptional()
+  @IsIn(['Affectionate', 'Calm', 'Independent', 'Playful', 'Territorial'])
+  temperament?: string;
+
+  @IsOptional()
+  @IsIn(LEVELS)
+  sociability?: string;
+
+  @IsOptional()
+  @IsIn(LEVELS)
+  exerciseNeed?: string;
+
+  @IsOptional()
+  @IsIn(LEVELS)
+  apartmentAdaptability?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  childrenCompatibility?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  dogsCompatibility?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  catsCompatibility?: boolean;
 }
