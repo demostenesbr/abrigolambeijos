@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import Logo from "./../../assets/abrigo-lambeijos.png";
 import { authService, errorMessage } from "../../services/auth";
 
 export default function Login() {
@@ -48,21 +47,7 @@ export default function Login() {
           loading="eager"
         />
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">
-              {" "}
-              <Image
-                src={Logo}
-                alt="Logo"
-                width={32}
-                height={32}
-                className="h-8 w-8"
-              />
-            </span>
-            <span className="text-[#EDE7F6] text-xl font-semibold">
-              Abrigo Lambeijos
-            </span>
-          </Link>
+          <h2 className="text-3xl text-[#EDE7F6] font-bold">Abrigo Lambeijos</h2>
         </div>
         <div className="relative z-10">
           <blockquote className="text-3xl text-[#EDE7F6] leading-snug mb-6">
@@ -70,7 +55,7 @@ export default function Login() {
             começando
           </blockquote>
           <p className="text-[#78909C] text-sm">
-            Ana Cristina Ferreira, fundadora
+            Meyre Morley, fundadora
           </p>
         </div>
         <div className="relative z-10 grid grid-cols-3 gap-4">
@@ -109,10 +94,7 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-[#37474F] mb-1.5 uppercase tracking-wider">
-                E-mail
-              </label>
+            <div className="flex flex-col gap-1">
               <input
                 type="email"
                 required
@@ -128,7 +110,7 @@ export default function Login() {
                   Senha
                 </label>
                 <a
-                  href="#"
+                  href="/esqueci-senha"
                   className="text-xs text-[#4D246A] hover:underline underline-offset-4"
                 >
                   Esqueci a senha

@@ -2,7 +2,7 @@ import Image from "next/image";
 
 const team = [
   {
-    name: "Ana Cristina Ferreira",
+    name: "Meyre Morley",
     role: "Fundadora & Diretora",
     years: "12 anos",
     img: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&auto=format",

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "./../../assets/abrigo-lambeijos.png";
 import { authService, errorMessage } from "../../services/auth";
 
 export default function Register() {
@@ -82,7 +81,7 @@ export default function Register() {
         }}
       >
         <Image
-          src="https://images.unsplash.com/photo-1601758124510-52d02ddb7cbd?w=800&h=900&fit=crop&auto=format"
+          src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800&h=900&fit=crop&auto=format"
           alt="Animal feliz"
           className="absolute inset-0 w-full h-full object-cover opacity-15"
           width={800}
@@ -90,20 +89,7 @@ export default function Register() {
           loading="eager"
         />
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">
-              <Image
-                src={Logo}
-                alt="Logo"
-                width={32}
-                height={32}
-                className="h-8 w-8"
-              />
-            </span>
-            <span className="text-[#EDE7F6] text-xl font-semibold">
-              Abrigo Lambeijos
-            </span>
-          </Link>
+          <h2 className="text-3xl text-[#EDE7F6] font-bold">Abrigo Lambeijos</h2>
         </div>
         <div className="relative z-10 space-y-6">
           <h2 className="text-4xl text-white font-bold leading-snug">

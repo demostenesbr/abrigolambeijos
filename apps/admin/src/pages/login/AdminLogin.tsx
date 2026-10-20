@@ -47,7 +47,7 @@ export default function AdminLogin() {
             começando."
           </blockquote>
           <p className="text-[#78909C] text-sm">
-            Ana Cristina Ferreira, fundadora
+            Meyre Morley, fundadora
           </p>
         </div>
         <div className="relative z-10 grid grid-cols-3 gap-4">
