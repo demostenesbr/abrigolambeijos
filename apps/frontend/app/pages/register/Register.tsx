@@ -167,7 +167,7 @@ export default function Register() {
               <input
                 type="text"
                 required
-                placeholder="Seu nome"
+                placeholder="Seu nome completo"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className={inputClass}
@@ -192,7 +192,7 @@ export default function Register() {
               </label>
               <input
                 type="tel"
-                placeholder="(11) 9.0000-0000"
+                placeholder="(11)90000-0000"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className={inputClass}
@@ -236,14 +236,14 @@ export default function Register() {
               <span className="text-xs text-[#546E7A] leading-relaxed">
                 Li e concordo com os{" "}
                 <a
-                  href="#"
+                  href="/termos-de-uso"
                   className="text-[#4D246A] underline underline-offset-4"
                 >
                   Termos de Uso
                 </a>{" "}
                 e a{" "}
                 <a
-                  href="#"
+                  href="/politica-de-privacidade"
                   className="text-[#4D246A] underline underline-offset-4"
                 >
                   Política de Privacidade
