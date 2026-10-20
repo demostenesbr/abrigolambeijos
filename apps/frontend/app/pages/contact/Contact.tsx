@@ -39,8 +39,8 @@ export default function Contact() {
           {[
             { icon: "📞", title: "Telefone", info: "(11) 3456-7890", sub: "Seg–Sex, 8h–18h" },
             { icon: "🆘", title: "Emergências", info: "(11) 9.8765-4321", sub: "24 horas, 7 dias" },
-            { icon: "📧", title: "E-mail", info: "contato@larfeliz.org.br", sub: "Resposta em até 24h" },
-            { icon: "📍", title: "Endereço", info: "Rua dos Pinheiros, 142", sub: "São Paulo, SP — 05422-000" },
+            { icon: "📧", title: "E-mail", info: "abrigolambeijos@gmail.com", sub: "Resposta em até 24h" },
+            { icon: "📍", title: "Endereço", info: "Rua Santo Amaro, 999", sub: "São Paulo, SP — 05422-000" },
           ].map((c) => (
             <div key={c.title} className="flex gap-4">
               <div className="w-10 h-10 rounded-xl bg-[#EDE7F6] flex items-center justify-center text-lg shrink-0">
@@ -58,12 +58,25 @@ export default function Contact() {
             <p className="text-xs font-bold uppercase tracking-wider text-[#78909C] mb-3">Redes sociais</p>
             <div className="flex gap-3">
               {[
-                { label: "Instagram", handle: "@larfelizsp" },
-                { label: "Facebook", handle: "/larfeliz" },
+                { label: "Instagram", handle: "@abrigolambeijos" },
               ].map((s) => (
                 <a
                   key={s.label}
-                  href="#"
+                  href="https://www.instagram.com/abrigolambeijos"
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex-1 text-center p-3 bg-white border border-[#D1C4E9] rounded-xl hover:border-[#4D246A] hover:text-[#4D246A] transition-all text-xs font-semibold text-[#37474F]"
+                >
+                  <div>{s.label}</div>
+                  <div className="text-[#78909C] font-normal mt-0.5">{s.handle}</div>
+                </a>
+              ))}
+              {[
+                { label: "Facebook", handle: "/abrigolambeijos" },
+              ].map((s) => (
+                <a
+                  key={s.label}
+                  href="https://www.facebook.com/abrigolambeijos"
+                  target="_blank" rel="noopener noreferrer"
                   className="flex-1 text-center p-3 bg-white border border-[#D1C4E9] rounded-xl hover:border-[#4D246A] hover:text-[#4D246A] transition-all text-xs font-semibold text-[#37474F]"
                 >
                   <div>{s.label}</div>

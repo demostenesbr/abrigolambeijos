@@ -98,11 +98,11 @@ export default function Footer() {
 
         <div>
           <h4 className="font-semibold text-[#EDE7F6] mb-4 text-sm uppercase tracking-wider">
-            Contato
+            Contato / PIX
           </h4>
           <ul className="space-y-2 text-sm text-[#78909C]">
-            <li>contato@abrigolambeijos.com.br</li>
-            <li>(11) 3456-9999</li>
+            <li><a href="mailto:abrigolambeijos@gmail.com">abrigolambeijos@gmail.com</a></li>
+            <li>(11) 3456-7890</li>
             <li>
               Rua Santo Amaro, 999
               <br />
