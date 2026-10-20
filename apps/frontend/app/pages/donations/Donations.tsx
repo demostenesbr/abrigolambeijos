@@ -42,7 +42,7 @@ const impacts = [
   { value: "R$ 500", label: "financia uma castração completa" },
 ];
 
-const pixKey = "doacoes@abrigolambeijos.com.br";
+const pixKey = "abrigolambeijos@gmail.com";
 
 export default function Donations() {
   const [selected, setSelected] = useState(80);
@@ -199,12 +199,10 @@ export default function Donations() {
                 <p className="text-xs font-bold uppercase tracking-wider text-[#546E7A] mb-3">
                   Forma de pagamento
                 </p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 gap-1">
                   {(
                     [
                       { key: "pix", label: "PIX" },
-                      { key: "cartao", label: "Cartão" },
-                      { key: "boleto", label: "Boleto" },
                     ] as const
                   ).map((m) => (
                     <button
