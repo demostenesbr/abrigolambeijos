@@ -153,11 +153,11 @@ export default function Login() {
 
           <p className="text-xs text-center text-[#78909C] mt-6 leading-relaxed">
             Ao entrar, você concorda com nossos{" "}
-            <a href="#" className="underline underline-offset-4">
+            <a href="/termos-de-uso" className="underline underline-offset-4">
               Termos de Uso
             </a>{" "}
             e{" "}
-            <a href="#" className="underline underline-offset-4">
+            <a href="/politica-de-privacidade" className="underline underline-offset-4">
               Política de Privacidade
             </a>
             .

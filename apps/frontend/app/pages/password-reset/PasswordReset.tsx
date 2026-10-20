@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+
 export default function PasswordReset() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [password, setPassword] = useState("");
