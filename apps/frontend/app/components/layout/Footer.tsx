@@ -58,8 +58,8 @@ export default function Footer() {
             {[
               ["Início", "/"],
               ["Adotar", "/adotar"],
-              ["Doar", "/doar"],
-              ["Sobre nós", "/sobre-nos"],
+              ["Parceiros", "/parceiros"],
+              ["Sobre nós", "/sobre"],
             ].map(([label, href]) => (
               <li key={label}>
                 <Link
@@ -81,8 +81,8 @@ export default function Footer() {
             {[
               ["Contato", "/contato"],
               ["Doações", "/doacoes"],
-              ["Como adotar", "/adotar"],
-              ["Animais perdidos", "/adotar"],
+              ["Termos de Uso", "/termos-de-uso"],
+              ["Política de Privacidade", "/politica-de-privacidade"],
             ].map(([label, href]) => (
               <li key={label}>
                 <Link
