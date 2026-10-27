@@ -1,4 +1,4 @@
-import { IsDateString, IsInt, IsOptional } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsOptional } from 'class-validator';
 
 export class CreateAdoptionDto {
   @IsInt()
@@ -10,4 +10,8 @@ export class CreateAdoptionDto {
   @IsOptional()
   @IsDateString()
   adoptionDate?: string;
+
+  @IsOptional()
+  @IsIn(['in_progress', 'completed'])
+  status?: string;
 }

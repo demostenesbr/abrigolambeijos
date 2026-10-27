@@ -66,7 +66,7 @@ export default function AdminRegister() {
           <Link to="/" className="flex items-center gap-2">
             <span className="text-2xl">🐾</span>
             <span className="text-[#EDE7F6] text-xl font-semibold">
-              Lar Feliz
+              Abrigo Lambeijos
             </span>
           </Link>
         </div>

@@ -21,9 +21,8 @@ export default function Login() {
       if (session.user.role === "ADMIN") {
         const adminUrl =
           process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:5173";
-        window.location.assign(
-          `${adminUrl}/admin/home#access_token=${encodeURIComponent(session.accessToken)}`,
-        );
+        window.location.href =
+          `${adminUrl}/admin/home#access_token=${encodeURIComponent(session.accessToken)}`;
         return;
       }
       router.push("/recomendacao");

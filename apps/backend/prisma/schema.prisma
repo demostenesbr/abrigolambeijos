@@ -91,6 +91,7 @@ model Adoptions {
     adopterId    Int
     animalId     Int
     adoptionDate DateTime @default(now())
+    status       String   @default("in_progress")
     createdAt    DateTime @default(now())
     updatedAt    DateTime @updatedAt
 

@@ -1,6 +1,7 @@
 import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
+import favicon from "../assets/favicon.ico";
 import {
   getAccessToken,
   persistAdminSession,
@@ -23,7 +24,9 @@ const navItems = [
 export default function AdminLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [authState, setAuthState] = useState<"checking" | "authenticated" | "unauthenticated">("checking");
+  const [authState, setAuthState] = useState<
+    "checking" | "authenticated" | "unauthenticated"
+  >("checking");
   const [user, setUser] = useState<AdminUser | null>(null);
 
   useEffect(() => {
@@ -91,16 +94,27 @@ export default function AdminLayout() {
         {/* Logo */}
         <div className="px-6 py-5 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🐾</span>
+            <span className="text-xl">
+              <img
+                src={favicon}
+                alt="Abrigo Lambeijos Logo"
+                width={24}
+                height={24}
+              />
+            </span>
             <div>
-              <p className="font-bold text-white text-base leading-tight">Lar Feliz</p>
-              <p className="text-[10px] text-[#78909C] uppercase tracking-widest">Painel Admin</p>
+              <p className="font-bold text-white text-base leading-tight">
+                Abrigo Lambeijos
+              </p>
+              <p className="text-[10px] text-[#78909C] uppercase tracking-widest">
+                Painel Admin
+              </p>
             </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 overflow-hidden px-3 py-3 space-y-0.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
