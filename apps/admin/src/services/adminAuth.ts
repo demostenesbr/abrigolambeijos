@@ -4,6 +4,7 @@ export const USER_KEY = "abrigo_user";
 export interface AdminUser {
   id: number;
   email: string;
+  name?: string | null;
   role: string;
 }
 

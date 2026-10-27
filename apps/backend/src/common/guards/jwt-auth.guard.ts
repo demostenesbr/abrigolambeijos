@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export interface AuthenticatedUser {
   id: number;
   email: string;
+  name?: string | null;
   role: UserRole;
   status: UserStatus;
 }
@@ -60,6 +61,7 @@ export class JwtAuthGuard implements CanActivate {
     request.user = {
       id: user.id,
       email: user.email,
+      name: user.name,
       role: user.role,
       status: user.status,
     };

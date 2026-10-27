@@ -27,3 +27,18 @@ export function statusClass(status: string) {
 export function apiErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Não foi possível carregar os dados.";
 }
+
+export function repairEncoding(value: string) {
+  let repaired = value;
+  for (let attempt = 0; attempt < 2 && /[ÃÂâ]/.test(repaired); attempt += 1) {
+    try {
+      const bytes = Uint8Array.from(repaired, (character) => character.charCodeAt(0) & 0xff);
+      const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      if (decoded === repaired) break;
+      repaired = decoded;
+    } catch {
+      break;
+    }
+  }
+  return repaired;
+}

@@ -12,6 +12,7 @@ import AdminRescues from "../pages/rescues/main";
 import AdminDonations from "../pages/donations/main";
 import AdminRecommedations from "../pages/recommendations/main";
 import AdminPartners from "../pages/partners/main";
+import AdminProfile from "../pages/profile/AdminProfile";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
         }),
       },
       { path: "home", Component: AdminDashboard },
+      { path: "perfil", Component: AdminProfile },
       { path: "pets", Component: AdminPets },
       { path: "adotantes", Component: AdminAdopters },
       { path: "solicitacoes", Component: AdminAdoptionRequests },

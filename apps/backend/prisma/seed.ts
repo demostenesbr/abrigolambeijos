@@ -20,7 +20,7 @@ async function seedUsers() {
     data: [
       {
         email: 'admin@abrigolambeijos.com.br',
-        name: 'Admin',
+        name: 'Meyre Morley',
         password: passwordHash,
         role: UserRole.ADMIN,
         status: UserStatus.ACTIVE,

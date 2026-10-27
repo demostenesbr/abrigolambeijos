@@ -30,7 +30,7 @@ export class AuthService {
       status: UserStatus.ACTIVE,
     });
 
-    return this.buildAuthResponse(user.id, user.email, user.role);
+    return this.buildAuthResponse(user.id, user.email, user.name, user.role);
   }
 
   async login(loginDto: LoginDto) {
@@ -50,15 +50,20 @@ export class AuthService {
       throw new UnauthorizedException('E-mail ou senha inválidos.');
     }
 
-    return this.buildAuthResponse(user.id, user.email, user.role);
+    return this.buildAuthResponse(user.id, user.email, user.name, user.role);
   }
 
-  private async buildAuthResponse(id: number, email: string, role: UserRole) {
+  private async buildAuthResponse(
+    id: number,
+    email: string,
+    name: string | null,
+    role: UserRole,
+  ) {
     const accessToken = await this.jwtService.signAsync({
       sub: id,
       email,
       role,
     });
-    return { accessToken, user: { id, email, role } };
+    return { accessToken, user: { id, email, name, role } };
   }
 }

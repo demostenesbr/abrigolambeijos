@@ -165,17 +165,22 @@ export default function AdminLayout() {
             </div>
           </button>
           <div className="hidden md:block" />
-          <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="flex items-center gap-3 rounded-xl p-1 text-left transition hover:bg-[#F5F1F8]"
+            onClick={() => navigate("/admin/perfil")}
+            title="Editar perfil"
+          >
             <div className="text-right hidden sm:block">
               <p className="text-xs font-semibold text-[#263238]">
-                {user?.email ?? "Administrador"}
+                {user?.name || user?.email || "Administrador"}
               </p>
               <p className="text-[10px] text-[#78909C]">Administradora</p>
             </div>
             <div className="w-8 h-8 rounded-full bg-[#4D246A] flex items-center justify-center text-white text-xs font-bold">
               AC
             </div>
-          </div>
+          </button>
         </header>
 
         {/* Page content */}

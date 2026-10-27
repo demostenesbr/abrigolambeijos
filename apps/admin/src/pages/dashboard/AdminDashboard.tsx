@@ -38,7 +38,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-[#263238]">Visão Geral</h1>
-        <p className="text-sm text-[#546E7A] mt-0.5">Bem-vinda, Ana Cristina. Aqui está o resumo de hoje.</p>
+        <p className="text-sm text-[#546E7A] mt-0.5">Bem-vinda, Meyre Morley. Aqui está o resumo de hoje.</p>
       </div>
 
       {/* KPIs */}
