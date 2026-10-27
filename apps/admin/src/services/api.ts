@@ -1,6 +1,5 @@
 import { API_URL } from "../config/environment";
-
-const ADMIN_AUTH_KEY = "admin_authenticated";
+import { getAccessToken } from "./adminAuth";
 
 export class ApiError extends Error {
   status: number;
@@ -13,7 +12,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem(ADMIN_AUTH_KEY);
+  const token = getAccessToken();
 
   const response = await fetch(`${API_URL}${path}`, {
     ...options,

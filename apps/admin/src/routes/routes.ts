@@ -16,7 +16,7 @@ import AdminPartners from "../pages/partners/main";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: React.createElement(Navigate, { to: "/admin", replace: true }),
+    element: React.createElement(Navigate, { to: "/admin/home", replace: true }),
   },
   { path: "/admin/login", Component: AdminLogin },
   { path: "/admin/cadastro", Component: AdminRegister },
@@ -24,7 +24,14 @@ export const router = createBrowserRouter([
     path: "/admin",
     Component: AdminLayout,
     children: [
-      { index: true, Component: AdminDashboard },
+      {
+        index: true,
+        element: React.createElement(Navigate, {
+          to: "/admin/home",
+          replace: true,
+        }),
+      },
+      { path: "home", Component: AdminDashboard },
       { path: "pets", Component: AdminPets },
       { path: "adotantes", Component: AdminAdopters },
       { path: "solicitacoes", Component: AdminAdoptionRequests },

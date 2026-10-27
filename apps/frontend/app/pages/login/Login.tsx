@@ -17,7 +17,15 @@ export default function Login() {
     setLoading(true);
     setError(null);
     try {
-      await authService.login(form.email, form.password);
+      const session = await authService.login(form.email, form.password);
+      if (session.user.role === "ADMIN") {
+        const adminUrl =
+          process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:5173";
+        window.location.assign(
+          `${adminUrl}/admin/home#access_token=${encodeURIComponent(session.accessToken)}`,
+        );
+        return;
+      }
       router.push("/recomendacao");
     } catch (err) {
       setError(errorMessage(err));

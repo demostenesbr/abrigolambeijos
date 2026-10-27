@@ -1,19 +1,33 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { signInAdmin } from "../../services/adminAuth";
+import { api } from "../../services/api";
+import { persistAdminSession } from "../../services/adminAuth";
 
 export default function AdminLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      signInAdmin();
-      navigate("/admin", { replace: true });
-    }, 1500);
+    setError(null);
+    try {
+      const session = await api.post<{
+        accessToken: string;
+        user: { id: number; email: string; role: string };
+      }>("/auth/login", form);
+      if (session.user.role !== "ADMIN") {
+        throw new Error("Acesso restrito a usuários administradores.");
+      }
+      persistAdminSession(session);
+      navigate("/admin/home", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível entrar.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass =
@@ -128,6 +142,11 @@ export default function AdminLogin() {
             >
               {loading ? "Entrando..." : "Entrar"}
             </button>
+            {error && (
+              <p role="alert" className="text-sm text-red-600">
+                {error}
+              </p>
+            )}
           </form>
 
           <div className="my-6 flex items-center gap-3">

@@ -1,9 +1,15 @@
 import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { isAdminAuthenticated, signOutAdmin } from "../services/adminAuth";
+import { useEffect, useState } from "react";
+import { api } from "../services/api";
+import {
+  getAccessToken,
+  persistAdminSession,
+  signOutAdmin,
+  type AdminUser,
+} from "../services/adminAuth";
 
 const navItems = [
-  { to: "/admin", icon: "🏠", label: "Início", end: true },
+  { to: "/admin/home", icon: "🏠", label: "Início", end: true },
   { to: "/admin/pets", icon: "🐶", label: "Pets" },
   { to: "/admin/adotantes", icon: "👤", label: "Adotantes" },
   { to: "/admin/solicitacoes", icon: "📋", label: "Solicitações" },
@@ -17,8 +23,48 @@ const navItems = [
 export default function AdminLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [authState, setAuthState] = useState<"checking" | "authenticated" | "unauthenticated">("checking");
+  const [user, setUser] = useState<AdminUser | null>(null);
 
-  if (!isAdminAuthenticated()) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const handoffToken = params.get("access_token");
+    if (handoffToken) {
+      localStorage.setItem("abrigo_access_token", handoffToken);
+      window.history.replaceState(
+        null,
+        document.title,
+        `${window.location.pathname}${window.location.search}`,
+      );
+    }
+
+    const token = getAccessToken();
+    if (!token) {
+      queueMicrotask(() => setAuthState("unauthenticated"));
+      return;
+    }
+
+    api
+      .get<AdminUser>("/auth/me")
+      .then((authenticatedUser) => {
+        if (authenticatedUser.role !== "ADMIN") {
+          throw new Error("Perfil sem permissão administrativa.");
+        }
+        persistAdminSession({ accessToken: token, user: authenticatedUser });
+        setUser(authenticatedUser);
+        setAuthState("authenticated");
+      })
+      .catch(() => {
+        signOutAdmin();
+        setAuthState("unauthenticated");
+      });
+  }, []);
+
+  if (authState === "checking") {
+    return <div className="min-h-screen bg-[#F3F0F8]" />;
+  }
+
+  if (authState === "unauthenticated") {
     return <Navigate to="/admin/login" replace />;
   }
 
@@ -107,7 +153,9 @@ export default function AdminLayout() {
           <div className="hidden md:block" />
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-semibold text-[#263238]">Ana Cristina</p>
+              <p className="text-xs font-semibold text-[#263238]">
+                {user?.email ?? "Administrador"}
+              </p>
               <p className="text-[10px] text-[#78909C]">Administradora</p>
             </div>
             <div className="w-8 h-8 rounded-full bg-[#4D246A] flex items-center justify-center text-white text-xs font-bold">
