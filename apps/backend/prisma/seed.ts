@@ -258,40 +258,73 @@ async function seedRescues() {
   console.log('Rescues seeded successfully.');
 }
 
+// Parceiros que antes estavam fixos na página pública, agora unificados no banco.
+const PARTNER_SEED = [
+  [
+    'Clínica Pata e Vida',
+    'Veterinária',
+    'São Paulo',
+    'SP',
+    'Atendimento clínico e cirúrgico com desconto para animais resgatados.',
+  ],
+  [
+    'Ração Natural SP',
+    'Pet Shop',
+    'Campinas',
+    'SP',
+    'Fornecimento de ração premium para nossos abrigos e famílias adotantes.',
+  ],
+  [
+    'Pet Care Hospital',
+    'Hospital Veterinário',
+    'São Paulo',
+    'SP',
+    'Cirurgias de emergência e exames especializados com custo coberto pelo fundo solidário.',
+  ],
+  [
+    'Espaço Animal',
+    'Adestramento',
+    'Guarulhos',
+    'SP',
+    'Treinamento comportamental para animais recém-adotados e em período de adaptação.',
+  ],
+  [
+    'FarmaPet',
+    'Farmácia',
+    'Santo André',
+    'SP',
+    'Medicamentos e suplementos com desconto de até 40% para animais cadastrados.',
+  ],
+  [
+    'Banho & Tosa Premium',
+    'Grooming',
+    'São Paulo',
+    'SP',
+    'Banho e tosa solidários para animais em acolhimento. Agendamento facilitado.',
+  ],
+] as const;
+
 async function seedPartners() {
-  if ((await prisma.partners.count()) > 0) return;
-  await prisma.partners.createMany({
-    data: [
-      {
-        name: 'Clínica VetCare',
-        type: 'Clínica veterinária',
-        contact: 'Dra. Ana',
-        email: 'contato@vetcare.example',
-        phone: '11 4000-0001',
-        address: 'Rua das Flores, 100',
-        city: 'São Paulo',
-        state: 'SP',
+  for (const [name, type, city, state, description] of PARTNER_SEED) {
+    const exists = await prisma.partners.findFirst({ where: { name } });
+    if (exists) continue;
+    await prisma.partners.create({
+      data: {
+        name,
+        type,
+        contact: 'A definir',
+        email: 'a-definir@abrigolambeijos.example',
+        phone: '(00) 0000-0000',
+        address: 'A definir',
+        city,
+        state,
         country: 'Brasil',
-        description: 'Atendimento veterinário com desconto para resgates.',
-        location: 'São Paulo, SP',
+        description,
+        location: `${city}, ${state}`,
         status: 'active',
       },
-      {
-        name: 'PetShop Amigo',
-        type: 'Pet shop',
-        contact: 'Carlos',
-        email: 'contato@petshopamigo.example',
-        phone: '21 4000-0002',
-        address: 'Av. Central, 200',
-        city: 'Rio de Janeiro',
-        state: 'RJ',
-        country: 'Brasil',
-        description: 'Doação mensal de ração.',
-        location: 'Rio de Janeiro, RJ',
-        status: 'inactive',
-      },
-    ],
-  });
+    });
+  }
   console.log('Partners seeded successfully.');
 }
 

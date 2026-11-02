@@ -61,6 +61,7 @@ describe('Role-based access (backend)', () => {
     generateForUser: jest.fn().mockResolvedValue({ results: [] }),
     getAdminOverview: jest.fn().mockResolvedValue({}),
     getPublicStats: jest.fn().mockResolvedValue({}),
+    findPublic: jest.fn().mockResolvedValue([]),
   };
 
   beforeAll(async () => {
@@ -184,6 +185,7 @@ describe('Role-based access (backend)', () => {
     it('GET /donations/summary and GET /stats are public', async () => {
       await call('get', '/donations/summary').expect(200);
       await call('get', '/stats').expect(200);
+      await call('get', '/partners/public').expect(200);
     });
 
     it.each([...NON_ADMINS, 'admin'])(

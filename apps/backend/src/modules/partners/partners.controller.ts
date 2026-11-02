@@ -10,7 +10,10 @@ import {
 import { PartnersService } from './partners.service';
 import { CreatePartnerDto } from './dto/create-partner.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
-import { AdminOnly } from '../../common/decorators/admin-only.decorator';
+import {
+  AdminOnly,
+  Public,
+} from '../../common/decorators/admin-only.decorator';
 
 @Controller('partners')
 @AdminOnly()
@@ -20,6 +23,12 @@ export class PartnersController {
   @Post()
   create(@Body() createPartnerDto: CreatePartnerDto) {
     return this.partnersService.create(createPartnerDto);
+  }
+
+  @Public()
+  @Get('public')
+  findPublic() {
+    return this.partnersService.findPublic();
   }
 
   @Get()

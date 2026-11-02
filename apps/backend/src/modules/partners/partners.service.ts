@@ -11,6 +11,22 @@ export class PartnersService {
     return this.prisma.partners.create({ data: createPartnerDto });
   }
 
+  // Somente campos públicos de parceiros ativos; contato e endereço ficam restritos ao ADMIN.
+  findPublic() {
+    return this.prisma.partners.findMany({
+      where: { status: 'active' },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        city: true,
+        state: true,
+        description: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   findAll() {
     return this.prisma.partners.findMany();
   }

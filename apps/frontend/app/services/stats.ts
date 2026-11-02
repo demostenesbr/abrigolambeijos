@@ -15,7 +15,17 @@ export interface DonationSummary {
   donorsCount: number;
 }
 
+export interface PublicPartner {
+  id: number;
+  name: string;
+  type: string;
+  city: string;
+  state: string;
+  description: string;
+}
+
 export const statsService = {
+  getPartners: () => api.get<PublicPartner[]>("/partners/public"),
   getPublicStats: () => api.get<PublicStats>("/stats"),
   getDonationSummary: () => api.get<DonationSummary>("/donations/summary"),
 };
