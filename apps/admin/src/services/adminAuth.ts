@@ -1,3 +1,5 @@
+import { FRONTEND_URL } from "../config/environment";
+
 export const ACCESS_TOKEN_KEY = "abrigo_access_token";
 export const USER_KEY = "abrigo_user";
 
@@ -44,6 +46,12 @@ export function persistAdminSession(session: {
   localStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken);
   localStorage.setItem(USER_KEY, JSON.stringify(session.user));
   touchAdminSession();
+}
+
+export function redirectToLogin(expired = false) {
+  window.location.replace(
+    `${FRONTEND_URL}/entrar${expired ? "?sessao=expirada" : ""}`,
+  );
 }
 
 export function signOutAdmin() {

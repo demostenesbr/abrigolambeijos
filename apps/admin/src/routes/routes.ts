@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import React from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import AdminLogin from "../pages/login/main";
 import AdminDashboard from "../pages/dashboard/main";
 import AdminPets from "../pages/pets/main";
 import AdminAdopters from "../pages/adopters/main";
@@ -18,7 +17,6 @@ export const router = createBrowserRouter([
     path: "/",
     element: React.createElement(Navigate, { to: "/admin/home", replace: true }),
   },
-  { path: "/admin/login", Component: AdminLogin },
   {
     path: "/admin",
     Component: AdminLayout,

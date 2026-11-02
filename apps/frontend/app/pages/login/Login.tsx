@@ -23,8 +23,11 @@ export default function Login() {
       if (session.user.role === "ADMIN") {
         const adminUrl =
           process.env.NEXT_PUBLIC_ADMIN_URL ?? "http://localhost:5173";
+        const token = encodeURIComponent(session.accessToken);
+        // O painel mantém a própria sessão; o site público não guarda credenciais de ADMIN.
+        authService.logout();
         window.location.href =
-          `${adminUrl}/admin/home#access_token=${encodeURIComponent(session.accessToken)}`;
+          `${adminUrl}/admin/home#access_token=${token}`;
         return;
       }
       router.push("/recomendacao");

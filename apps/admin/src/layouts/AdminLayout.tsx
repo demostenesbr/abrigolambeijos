@@ -1,10 +1,11 @@
-import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import favicon from "../assets/favicon.ico";
 import {
   IDLE_LIMIT_MS,
   getAccessToken,
+  redirectToLogin,
   isAdminSessionExpired,
   touchAdminSession,
   persistAdminSession,
@@ -48,7 +49,7 @@ export default function AdminLayout() {
     const token = getAccessToken();
     if (token && isAdminSessionExpired()) {
       signOutAdmin();
-      window.location.replace("/admin/login?sessao=expirada");
+      redirectToLogin(true);
       return;
     }
     if (!token) {
@@ -73,6 +74,10 @@ export default function AdminLayout() {
   }, []);
 
   useEffect(() => {
+    if (authState === "unauthenticated") redirectToLogin();
+  }, [authState]);
+
+  useEffect(() => {
     if (authState !== "authenticated") return;
     let lastTouch = 0;
     const onActivity = () => {
@@ -84,7 +89,7 @@ export default function AdminLayout() {
     const timer = window.setInterval(() => {
       if (isAdminSessionExpired()) {
         signOutAdmin();
-        navigate("/admin/login?sessao=expirada", { replace: true });
+        redirectToLogin(true);
       }
     }, Math.min(30000, IDLE_LIMIT_MS));
     const events = ["mousedown", "keydown", "scroll", "touchstart"];
@@ -95,19 +100,19 @@ export default function AdminLayout() {
       window.clearInterval(timer);
       events.forEach((name) => window.removeEventListener(name, onActivity));
     };
-  }, [authState, navigate]);
+  }, [authState]);
 
   if (authState === "checking") {
     return <div className="min-h-screen bg-[#F3F0F8]" />;
   }
 
   if (authState === "unauthenticated") {
-    return <Navigate to="/admin/login" replace />;
+    return <div className="min-h-screen bg-[#F3F0F8]" />;
   }
 
   const handleLogout = () => {
     signOutAdmin();
-    navigate("/admin/login", { replace: true });
+    redirectToLogin();
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
