@@ -2,7 +2,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "./../../assets/abrigo-lambeijos.png";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { authService } from "../../services/auth";
+import { useSessionUser } from "../../hooks/useSessionUser";
 import { useState } from "react";
 
 const items = [
@@ -14,9 +16,22 @@ const items = [
   { href: "/doacoes", label: "Doações" },
 ];
 
+const accountLinks = [
+  { href: "/recomendacao", label: "Recomendações" },
+  { href: "/perfil", label: "Perfil" },
+];
+
 export default function NavMenu() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useSessionUser();
+
+  const handleLogout = () => {
+    authService.logout();
+    setOpen(false);
+    router.push("/");
+  };
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -57,18 +72,41 @@ export default function NavMenu() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/entrar"
-            className="text-sm font-semibold text-[#37474F] hover:text-[#4D246A] transition-colors"
-          >
-            Entrar
-          </Link>
-          <Link
-            href="/cadastro"
-            className="text-sm font-semibold bg-[#F28C28] text-white px-4 py-2 rounded-full hover:bg-[#D97820] transition-colors"
-          >
-            Cadastre-se
-          </Link>
+          {user ? (
+            <>
+              {accountLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={linkClass(item.href)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-sm font-semibold border border-[#D1C4E9] text-[#37474F] px-4 py-2 rounded-full hover:bg-[#EDE7F6] transition-colors"
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/entrar"
+                className="text-sm font-semibold text-[#37474F] hover:text-[#4D246A] transition-colors"
+              >
+                Entrar
+              </Link>
+              <Link
+                href="/cadastro"
+                className="text-sm font-semibold bg-[#F28C28] text-white px-4 py-2 rounded-full hover:bg-[#D97820] transition-colors"
+              >
+                Cadastre-se
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -111,20 +149,44 @@ export default function NavMenu() {
           ))}
 
           <div className="flex gap-3 pt-2 border-t border-[#D1C4E9]">
-            <Link
-              href="/entrar"
-              onClick={() => setOpen(false)}
-              className="text-sm font-semibold text-[#37474F]"
-            >
-              Entrar
-            </Link>
-            <Link
-              href="/cadastro"
-              onClick={() => setOpen(false)}
-              className="text-sm font-semibold bg-[#F28C28] text-white px-4 py-2 rounded-full"
-            >
-              Cadastre-se
-            </Link>
+            {user ? (
+              <>
+                {accountLinks.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={linkClass(item.href)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-sm font-semibold text-[#37474F]"
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/entrar"
+                  onClick={() => setOpen(false)}
+                  className="text-sm font-semibold text-[#37474F]"
+                >
+                  Entrar
+                </Link>
+                <Link
+                  href="/cadastro"
+                  onClick={() => setOpen(false)}
+                  className="text-sm font-semibold bg-[#F28C28] text-white px-4 py-2 rounded-full"
+                >
+                  Cadastre-se
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { api } from "../../services/api";
 import { persistAdminSession } from "../../services/adminAuth";
 
@@ -8,6 +8,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const sessionExpired = useSearchParams()[0].get("sessao") === "expirada";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,15 +89,6 @@ export default function AdminLogin() {
             <h1 className="font-bold text-4xl text-[#263238] mb-2">
               Bem-vindo de volta
             </h1>
-            <p className="text-sm text-[#546E7A]">
-              Não tem conta?{" "}
-              <Link
-                to="/admin/cadastro"
-                className="text-[#4D246A] font-semibold hover:underline underline-offset-4"
-              >
-                Cadastre-se
-              </Link>
-            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -142,6 +134,12 @@ export default function AdminLogin() {
             >
               {loading ? "Entrando..." : "Entrar"}
             </button>
+            {sessionExpired && !error && (
+              <p role="status" className="text-sm text-[#4D246A]">
+                Sua sessão expirou. Entre novamente para continuar.
+              </p>
+            )}
+
             {error && (
               <p role="alert" className="text-sm text-red-600">
                 {error}

@@ -13,7 +13,6 @@ export default function Register() {
     phone: "",
     password: "",
     confirm: "",
-    role: "adotante",
     agreed: false,
   });
   const [done, setDone] = useState(false);
@@ -137,28 +136,6 @@ export default function Register() {
                 Entrar
               </Link>
             </p>
-          </div>
-
-          {/* Role picker */}
-          <div className="grid grid-cols-3 gap-2 mb-6 bg-[#EDE7F6] rounded-2xl p-1.5">
-            {[
-              { key: "adotante", label: "Adotante" },
-              { key: "protetor", label: "Protetor" },
-              { key: "parceiro", label: "Parceiro" },
-            ].map((r) => (
-              <button
-                key={r.key}
-                type="button"
-                onClick={() => setForm({ ...form, role: r.key })}
-                className={`py-2 text-xs font-semibold rounded-xl transition-all ${
-                  form.role === r.key
-                    ? "bg-white text-[#263238] shadow-sm"
-                    : "text-[#546E7A] hover:text-[#263238]"
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

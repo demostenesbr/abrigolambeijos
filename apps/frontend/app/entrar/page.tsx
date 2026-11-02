@@ -1,6 +1,6 @@
 import Main from "../pages/login/main";
-import React from "react";
+import React, { Suspense } from "react";
 
 export default function LoginPage() {
-  return React.createElement(Main);
+  return React.createElement(Suspense, null, React.createElement(Main));
 }

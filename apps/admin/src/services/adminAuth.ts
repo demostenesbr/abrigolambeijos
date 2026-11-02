@@ -1,6 +1,20 @@
 export const ACCESS_TOKEN_KEY = "abrigo_access_token";
 export const USER_KEY = "abrigo_user";
 
+const ACTIVITY_KEY = "abrigo_last_activity";
+
+// Tempo máximo de inatividade antes de encerrar a sessão (30 min).
+export const IDLE_LIMIT_MS = 30 * 60 * 1000;
+
+export function touchAdminSession() {
+  localStorage.setItem(ACTIVITY_KEY, String(Date.now()));
+}
+
+export function isAdminSessionExpired() {
+  const last = Number(localStorage.getItem(ACTIVITY_KEY));
+  return !last || Date.now() - last > IDLE_LIMIT_MS;
+}
+
 export interface AdminUser {
   id: number;
   email: string;
@@ -29,10 +43,12 @@ export function persistAdminSession(session: {
 }) {
   localStorage.setItem(ACCESS_TOKEN_KEY, session.accessToken);
   localStorage.setItem(USER_KEY, JSON.stringify(session.user));
+  touchAdminSession();
 }
 
 export function signOutAdmin() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem("admin_authenticated");
+  localStorage.removeItem(ACTIVITY_KEY);
 }

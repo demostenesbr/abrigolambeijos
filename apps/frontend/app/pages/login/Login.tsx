@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authService, errorMessage } from "../../services/auth";
 import { AuthStats } from "../../components/stats/StatsBoards";
 
 export default function Login() {
   const router = useRouter();
+  const sessionExpired = useSearchParams().get("sessao") === "expirada";
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +120,12 @@ export default function Login() {
                 className={inputClass}
               />
             </div>
+
+            {sessionExpired && !error && (
+              <p role="status" className="text-sm text-[#4D246A]">
+                Sua sessão expirou. Entre novamente para continuar.
+              </p>
+            )}
 
             {error && (
               <p role="alert" className="text-sm text-red-600">

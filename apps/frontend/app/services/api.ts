@@ -24,6 +24,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     },
   });
 
+  if (response.status === 401 && token) {
+    localStorage.removeItem("abrigo_access_token");
+    localStorage.removeItem("abrigo_user");
+    localStorage.removeItem("abrigo_last_activity");
+    window.dispatchEvent(new Event("abrigo-auth-changed"));
+  }
+
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new ApiError(response.status, body?.message ?? response.statusText);

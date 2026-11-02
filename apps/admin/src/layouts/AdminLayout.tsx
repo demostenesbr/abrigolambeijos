@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { api } from "../services/api";
 import favicon from "../assets/favicon.ico";
 import {
+  IDLE_LIMIT_MS,
   getAccessToken,
+  isAdminSessionExpired,
+  touchAdminSession,
   persistAdminSession,
   signOutAdmin,
   type AdminUser,
@@ -34,6 +37,7 @@ export default function AdminLayout() {
     const handoffToken = params.get("access_token");
     if (handoffToken) {
       localStorage.setItem("abrigo_access_token", handoffToken);
+      touchAdminSession();
       window.history.replaceState(
         null,
         document.title,
@@ -42,6 +46,11 @@ export default function AdminLayout() {
     }
 
     const token = getAccessToken();
+    if (token && isAdminSessionExpired()) {
+      signOutAdmin();
+      window.location.replace("/admin/login?sessao=expirada");
+      return;
+    }
     if (!token) {
       queueMicrotask(() => setAuthState("unauthenticated"));
       return;
@@ -62,6 +71,31 @@ export default function AdminLayout() {
         setAuthState("unauthenticated");
       });
   }, []);
+
+  useEffect(() => {
+    if (authState !== "authenticated") return;
+    let lastTouch = 0;
+    const onActivity = () => {
+      const now = Date.now();
+      if (now - lastTouch < 15000) return;
+      lastTouch = now;
+      touchAdminSession();
+    };
+    const timer = window.setInterval(() => {
+      if (isAdminSessionExpired()) {
+        signOutAdmin();
+        navigate("/admin/login?sessao=expirada", { replace: true });
+      }
+    }, Math.min(30000, IDLE_LIMIT_MS));
+    const events = ["mousedown", "keydown", "scroll", "touchstart"];
+    events.forEach((name) =>
+      window.addEventListener(name, onActivity, { passive: true }),
+    );
+    return () => {
+      window.clearInterval(timer);
+      events.forEach((name) => window.removeEventListener(name, onActivity));
+    };
+  }, [authState, navigate]);
 
   if (authState === "checking") {
     return <div className="min-h-screen bg-[#F3F0F8]" />;
