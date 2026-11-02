@@ -16,10 +16,15 @@ interface AdminOverview {
   adopters: { total: number; thisMonth: number };
   adoptionRequests: { pending: number; stale: number };
   adoptions: { completed: number; thisMonth: number };
-  rescues: { total: number; thisMonth: number };
+  rescues: { total: number; thisMonth: number; active: number; inTreatment: number };
   recommendations: number;
-  partners: number;
-  donations: { thisMonth: number; previousMonth: number; total: number };
+  partners: { total: number; active: number };
+  donations: {
+    thisMonth: number;
+    previousMonth: number;
+    total: number;
+    recurringThisMonth: number;
+  };
   recentRequests: {
     id: number;
     userName: string;
@@ -27,7 +32,13 @@ interface AdminOverview {
     requestDate: string;
     status: string;
   }[];
-  recentRescues: { id: number; name: string; location: string; createdAt: string }[];
+  recentRescues: {
+    id: number;
+    name: string;
+    location: string;
+    status: string;
+    createdAt: string;
+  }[];
   rescuesByMonth: { month: string; value: number }[];
 }
 
@@ -57,10 +68,10 @@ export default function AdminDashboard() {
         { label: "Adotantes cadastrados", value: data.adopters.total.toLocaleString("pt-BR"), delta: monthDelta(data.adopters.thisMonth), icon: "👤", color: "bg-[#FFF3E0] text-[#F28C28]" },
         { label: "Solicitações pendentes", value: data.adoptionRequests.pending.toLocaleString("pt-BR"), delta: `${data.adoptionRequests.stale} aguardando há +3 dias`, icon: "📋", color: "bg-[#FCE4EC] text-[#D9534F]" },
         { label: "Adoções realizadas", value: data.adoptions.completed.toLocaleString("pt-BR"), delta: monthDelta(data.adoptions.thisMonth), icon: "❤️", color: "bg-[#E8F5E9] text-[#43A047]" },
-        { label: "Resgates registrados", value: data.rescues.total.toLocaleString("pt-BR"), delta: monthDelta(data.rescues.thisMonth), icon: "🚑", color: "bg-[#E3F2FD] text-[#3A7CA5]" },
-        { label: "Doações (mês)", value: formatCurrency(data.donations.thisMonth), delta: donationDelta(data.donations.thisMonth, data.donations.previousMonth), icon: "💰", color: "bg-[#FFFDE7] text-[#F4C95D]" },
+        { label: "Resgates registrados", value: data.rescues.total.toLocaleString("pt-BR"), delta: `${monthDelta(data.rescues.thisMonth)} · ${data.rescues.active} ativos (${data.rescues.inTreatment} em tratamento)`, icon: "🚑", color: "bg-[#E3F2FD] text-[#3A7CA5]" },
+        { label: "Doações (mês)", value: formatCurrency(data.donations.thisMonth), delta: `${donationDelta(data.donations.thisMonth, data.donations.previousMonth)} · ${formatCurrency(data.donations.recurringThisMonth)} recorrentes`, icon: "💰", color: "bg-[#FFFDE7] text-[#F4C95D]" },
         { label: "Recomendações geradas (ML)", value: data.recommendations.toLocaleString("pt-BR"), delta: "Modelo de compatibilidade", icon: "🧠", color: "bg-[#EDE7F6] text-[#4D246A]" },
-        { label: "Parceiros", value: data.partners.toLocaleString("pt-BR"), delta: "Cadastrados na rede", icon: "🤝", color: "bg-[#E8F5E9] text-[#43A047]" },
+        { label: "Parceiros", value: data.partners.active.toLocaleString("pt-BR"), delta: `Ativos de ${data.partners.total} cadastrados`, icon: "🤝", color: "bg-[#E8F5E9] text-[#43A047]" },
         { label: "Total arrecadado", value: formatCurrency(data.donations.total), delta: "Desde o início", icon: "🏦", color: "bg-[#FFFDE7] text-[#F4C95D]" },
       ]
     : [];
@@ -135,7 +146,10 @@ export default function AdminDashboard() {
                 <div className="space-y-3">
                   {data.recentRescues.map((r) => (
                     <div key={r.id} className="py-2.5 border-b border-[#F3F0F8] last:border-0">
-                      <p className="text-sm font-semibold text-[#263238]">{r.name}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-[#263238]">{r.name}</p>
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusClass(r.status)}`}>{statusLabel(r.status)}</span>
+                      </div>
                       <p className="text-xs text-[#78909C]">📍 {r.location} · {formatDate(r.createdAt)}</p>
                     </div>
                   ))}

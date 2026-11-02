@@ -79,8 +79,27 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "allowJs": true,
+            "module": "commonjs",
+            "moduleResolution": "node10",
+            "esModuleInterop": true,
+            "emitDecoratorMetadata": true,
+            "experimentalDecorators": true
+          },
+          "diagnostics": false
+        }
+      ]
     },
+    "moduleNameMapper": {
+      "^@nestjs/mapped-types$": "<rootDir>/../test/mapped-types.shim.js"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@nestjs/jwt/)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

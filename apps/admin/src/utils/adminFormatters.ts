@@ -24,15 +24,23 @@ export function statusLabel(status: string) {
     rejected: "Recusada",
     completed: "Concluída",
     in_progress: "Em andamento",
+    confirmed: "Confirmada",
+    failed: "Falhou",
+    refunded: "Estornada",
+    active: "Ativo",
+    inactive: "Inativo",
+    triage: "Triagem",
+    in_treatment: "Em tratamento",
+    recovered: "Recuperado",
   };
   return labels[status] ?? status;
 }
 
 export function statusClass(status: string) {
-  if (status === "approved" || status === "completed") {
+  if (["approved", "completed", "confirmed", "active", "recovered"].includes(status)) {
     return "bg-emerald-50 text-emerald-700";
   }
-  if (status === "rejected") return "bg-red-50 text-red-700";
+  if (["rejected", "failed", "inactive"].includes(status)) return "bg-red-50 text-red-700";
   return "bg-amber-50 text-amber-700";
 }
 

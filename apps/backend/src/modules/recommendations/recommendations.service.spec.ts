@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '../../common/prisma/prisma.service';
+import { MlBridgeService } from './ml-bridge.service';
 import { RecommendationsService } from './recommendations.service';
 
 describe('RecommendationsService', () => {
@@ -6,7 +8,11 @@ describe('RecommendationsService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RecommendationsService],
+      providers: [
+        RecommendationsService,
+        { provide: PrismaService, useValue: {} },
+        { provide: MlBridgeService, useValue: {} },
+      ],
     }).compile();
 
     service = module.get<RecommendationsService>(RecommendationsService);

@@ -16,12 +16,15 @@ export class DonationsService {
   }
 
   async getSummary() {
+    const confirmed = { status: 'confirmed' };
     const [totals, donors] = await Promise.all([
       this.prisma.donations.aggregate({
         _sum: { amount: true },
         _count: { _all: true },
+        where: confirmed,
       }),
       this.prisma.donations.findMany({
+        where: confirmed,
         distinct: ['donorName'],
         select: { donorName: true },
       }),

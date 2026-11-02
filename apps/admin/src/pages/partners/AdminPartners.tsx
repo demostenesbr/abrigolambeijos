@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../services/api";
-import { apiErrorMessage, formatDate } from "../../utils/adminFormatters";
+import { apiErrorMessage, formatDate, statusClass, statusLabel } from "../../utils/adminFormatters";
 
 interface Partner {
   id: number;
@@ -15,6 +15,7 @@ interface Partner {
   country: string;
   description: string;
   location: string;
+  status: "active" | "inactive";
   createdAt: string;
 }
 
@@ -92,6 +93,17 @@ export default function AdminPartners() {
     }
   };
 
+  const toggleStatus = async (partner: Partner) => {
+    try {
+      const updated = await api.patch<Partner>(`/partners/${partner.id}`, {
+        status: partner.status === "active" ? "inactive" : "active",
+      });
+      setPartners((current) => current.map((item) => (item.id === partner.id ? updated : item)));
+    } catch (requestError) {
+      setError(apiErrorMessage(requestError));
+    }
+  };
+
   const removePartner = async (id: number) => {
     if (!window.confirm("Remover este parceiro?")) return;
     try {
@@ -109,7 +121,9 @@ export default function AdminPartners() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#263238]">🤝 Parceiros</h1>
-          <p className="text-sm text-[#546E7A]">{partners.length} parceiros cadastrados</p>
+          <p className="text-sm text-[#546E7A]">
+            {partners.length} parceiros cadastrados · {partners.filter((p) => p.status === "active").length} ativos
+          </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -155,7 +169,10 @@ export default function AdminPartners() {
                   <p className="font-bold text-[#263238]">{p.name}</p>
                   <p className="text-xs text-[#78909C]">📍 {p.city}, {p.state}</p>
                 </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#EDE7F6] text-[#4D246A]">{p.type}</span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#EDE7F6] text-[#4D246A]">{p.type}</span>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusClass(p.status)}`}>{statusLabel(p.status)}</span>
+                </div>
               </div>
 
               <div className="space-y-1.5 mb-4 text-xs text-[#546E7A]">
@@ -170,12 +187,20 @@ export default function AdminPartners() {
                 <p className="text-xs text-[#546E7A] mt-0.5">{p.description}</p>
               </div>
 
-              <button
-                onClick={() => void removePartner(p.id)}
-                className="w-full text-xs font-semibold py-2 rounded-full bg-[#FCE4EC] text-[#D9534F] hover:bg-[#D9534F] hover:text-white transition-colors"
-              >
-                Remover
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => void toggleStatus(p)}
+                  className="flex-1 text-xs font-semibold py-2 rounded-full bg-[#EDE7F6] text-[#4D246A] hover:bg-[#4D246A] hover:text-white transition-colors"
+                >
+                  {p.status === "active" ? "Desativar" : "Ativar"}
+                </button>
+                <button
+                  onClick={() => void removePartner(p.id)}
+                  className="flex-1 text-xs font-semibold py-2 rounded-full bg-[#FCE4EC] text-[#D9534F] hover:bg-[#D9534F] hover:text-white transition-colors"
+                >
+                  Remover
+                </button>
+              </div>
             </div>
           ))}
         </div>

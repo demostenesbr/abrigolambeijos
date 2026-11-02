@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../services/api";
-import { apiErrorMessage, formatDate } from "../../utils/adminFormatters";
+import { apiErrorMessage, formatDate, statusClass, statusLabel } from "../../utils/adminFormatters";
 
 interface Rescue {
   id: number;
   name: string;
   location: string;
+  status: string;
   createdAt: string;
 }
+
+const RESCUE_STATUSES = ["triage", "in_treatment", "recovered"];
 
 export default function AdminRescues() {
   const [rescues, setRescues] = useState<Rescue[]>([]);
@@ -27,6 +30,10 @@ export default function AdminRescues() {
     catch (requestError) { setError(apiErrorMessage(requestError)); }
     finally { setSaving(false); }
   };
+  const updateStatus = async (id: number, status: string) => {
+    try { const updated = await api.patch<Rescue>(`/rescues/${id}`, { status }); setRescues((current) => current.map((rescue) => (rescue.id === id ? updated : rescue))); }
+    catch (requestError) { setError(apiErrorMessage(requestError)); }
+  };
   const removeRescue = async (id: number) => {
     if (!window.confirm("Remover este registro de resgate?")) return;
     try { await api.delete(`/rescues/${id}`); setRescues((current) => current.filter((rescue) => rescue.id !== id)); }
@@ -35,10 +42,10 @@ export default function AdminRescues() {
 
   return <div className="space-y-6">
     <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-widest text-[#F28C28]">Histórico de proteção</p><h1 className="mt-1 text-3xl font-black text-[#2F2140]">Resgates</h1><p className="mt-1 text-sm text-[#78909C]">Registre a origem e o local dos animais acolhidos pelo abrigo.</p></div><button onClick={() => setShowForm((value) => !value)} className="rounded-full bg-[#F28C28] px-5 py-3 text-sm font-bold text-white hover:bg-[#D97820]">{showForm ? "Fechar registro" : "+ Novo resgate"}</button></header>
-    <div className="grid gap-4 sm:grid-cols-2"><Metric label="Resgates registrados" value={rescues.length} color="text-[#4D246A]" /><Metric label="Localidades alcançadas" value={new Set(rescues.map((rescue) => rescue.location)).size} color="text-[#F28C28]" /></div>
+    <div className="grid gap-4 sm:grid-cols-3"><Metric label="Resgates registrados" value={rescues.length} color="text-[#4D246A]" /><Metric label="Resgates ativos" value={rescues.filter((rescue) => rescue.status !== "recovered").length} color="text-[#D9534F]" /><Metric label="Localidades alcançadas" value={new Set(rescues.map((rescue) => rescue.location)).size} color="text-[#F28C28]" /></div>
     {showForm && <form onSubmit={createRescue} className="grid gap-3 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-3"><input required placeholder="Nome ou identificação do resgate" className="rounded-xl border p-3 text-sm" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /><input required placeholder="Localização" className="rounded-xl border p-3 text-sm" value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} /><button disabled={saving} className="rounded-xl bg-[#4D246A] p-3 text-sm font-bold text-white disabled:opacity-60">{saving ? "Salvando..." : "Salvar registro"}</button></form>}
     {error && <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
-    <section className="overflow-hidden rounded-2xl bg-white shadow-sm"><div className="border-b border-[#EEE7F1] p-4"><input aria-label="Buscar resgates" placeholder="Buscar por nome ou local..." className="w-full rounded-xl border border-[#E5DCEB] px-4 py-3 text-sm outline-none focus:border-[#4D246A] sm:max-w-md" value={query} onChange={(event) => setQuery(event.target.value)} /></div>{loading ? <p className="p-8 text-sm text-[#78909C]">Carregando resgates...</p> : visible.length === 0 ? <p className="p-8 text-center text-sm text-[#78909C]">Nenhum resgate encontrado.</p> : <div className="grid gap-4 p-4 md:grid-cols-2 lg:grid-cols-3">{visible.map((rescue) => <article key={rescue.id} className="rounded-2xl border border-[#EEE7F1] p-5 hover:shadow-md"><div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FFF1E3] text-xl">🚑</div><h2 className="mt-4 font-black text-[#2F2140]">{rescue.name}</h2><p className="mt-1 text-sm text-[#546E7A]">📍 {rescue.location}</p><p className="mt-4 text-xs text-[#78909C]">Registrado em {formatDate(rescue.createdAt)}</p><button onClick={() => void removeRescue(rescue.id)} className="mt-4 text-xs font-bold text-red-600 hover:underline">Remover registro</button></article>)}</div>}</section>
+    <section className="overflow-hidden rounded-2xl bg-white shadow-sm"><div className="border-b border-[#EEE7F1] p-4"><input aria-label="Buscar resgates" placeholder="Buscar por nome ou local..." className="w-full rounded-xl border border-[#E5DCEB] px-4 py-3 text-sm outline-none focus:border-[#4D246A] sm:max-w-md" value={query} onChange={(event) => setQuery(event.target.value)} /></div>{loading ? <p className="p-8 text-sm text-[#78909C]">Carregando resgates...</p> : visible.length === 0 ? <p className="p-8 text-center text-sm text-[#78909C]">Nenhum resgate encontrado.</p> : <div className="grid gap-4 p-4 md:grid-cols-2 lg:grid-cols-3">{visible.map((rescue) => <article key={rescue.id} className="rounded-2xl border border-[#EEE7F1] p-5 hover:shadow-md"><div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FFF1E3] text-xl">🚑</div><h2 className="mt-4 font-black text-[#2F2140]">{rescue.name}</h2><p className="mt-1 text-sm text-[#546E7A]">📍 {rescue.location}</p><select aria-label="Status do resgate" value={rescue.status} onChange={(event) => void updateStatus(rescue.id, event.target.value)} className={`mt-3 rounded-full px-2.5 py-1 text-xs font-semibold ${statusClass(rescue.status)}`}>{RESCUE_STATUSES.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select><p className="mt-4 text-xs text-[#78909C]">Registrado em {formatDate(rescue.createdAt)}</p><button onClick={() => void removeRescue(rescue.id)} className="mt-4 text-xs font-bold text-red-600 hover:underline">Remover registro</button></article>)}</div>}</section>
   </div>;
 }
 

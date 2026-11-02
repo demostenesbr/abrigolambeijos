@@ -1,4 +1,6 @@
-import { IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
+
+export const RESCUE_STATUSES = ['triage', 'in_treatment', 'recovered'] as const;
 
 export class CreateRescueDto {
   @IsString()
@@ -6,4 +8,8 @@ export class CreateRescueDto {
 
   @IsString()
   location: string;
+
+  @IsOptional()
+  @IsIn(RESCUE_STATUSES)
+  status?: string;
 }

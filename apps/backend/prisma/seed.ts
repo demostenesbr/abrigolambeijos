@@ -214,10 +214,24 @@ async function seedDonations() {
       {
         donorName: 'John Donor',
         amount: 100.0,
+        type: 'monthly',
+        method: 'card',
+        plan: 'Padrinho',
+        status: 'confirmed',
       },
       {
         donorName: 'Jane Donor',
         amount: 50.0,
+        type: 'one_time',
+        method: 'pix',
+        status: 'confirmed',
+      },
+      {
+        donorName: 'Pending Donor',
+        amount: 30.0,
+        type: 'one_time',
+        method: 'boleto',
+        status: 'pending',
       },
     ],
     skipDuplicates: true,
@@ -231,15 +245,54 @@ async function seedRescues() {
       {
         name: 'Buddy Rescue',
         location: 'São Paulo, SP',
+        status: 'in_treatment',
       },
       {
         name: 'Whiskers Rescue',
         location: 'Rio de Janeiro, RJ',
+        status: 'recovered',
       },
     ],
     skipDuplicates: true,
   });
   console.log('Rescues seeded successfully.');
+}
+
+async function seedPartners() {
+  if ((await prisma.partners.count()) > 0) return;
+  await prisma.partners.createMany({
+    data: [
+      {
+        name: 'Clínica VetCare',
+        type: 'Clínica veterinária',
+        contact: 'Dra. Ana',
+        email: 'contato@vetcare.example',
+        phone: '11 4000-0001',
+        address: 'Rua das Flores, 100',
+        city: 'São Paulo',
+        state: 'SP',
+        country: 'Brasil',
+        description: 'Atendimento veterinário com desconto para resgates.',
+        location: 'São Paulo, SP',
+        status: 'active',
+      },
+      {
+        name: 'PetShop Amigo',
+        type: 'Pet shop',
+        contact: 'Carlos',
+        email: 'contato@petshopamigo.example',
+        phone: '21 4000-0002',
+        address: 'Av. Central, 200',
+        city: 'Rio de Janeiro',
+        state: 'RJ',
+        country: 'Brasil',
+        description: 'Doação mensal de ração.',
+        location: 'Rio de Janeiro, RJ',
+        status: 'inactive',
+      },
+    ],
+  });
+  console.log('Partners seeded successfully.');
 }
 
 async function main() {
@@ -251,6 +304,7 @@ async function main() {
   await seedRecommendations();
   await seedDonations();
   await seedRescues();
+  await seedPartners();
   console.log('Main function executed successfully.');
 }
 

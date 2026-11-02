@@ -1,13 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 
-const RECENT_MONTHS = 3;
+export const RECENT_MONTHS = 3;
 // Abaixo deste valor no período recente, exibimos o total desde o início
-const MIN_RECENT_AMOUNT = 1000;
+export const MIN_RECENT_AMOUNT = 1000;
+
+const CONFIRMED = 'confirmed';
 
 @Injectable()
 export class StatsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private sumConfirmed(createdAt?: { gte?: Date; lt?: Date }) {
+    return this.prisma.donations.aggregate({
+      _sum: { amount: true },
+      where: { status: CONFIRMED, ...(createdAt ? { createdAt } : {}) },
+    });
+  }
 
   async getPublicStats() {
     const since = new Date();
@@ -17,12 +26,9 @@ export class StatsService {
       await Promise.all([
         this.prisma.rescues.count(),
         this.prisma.adoptions.count({ where: { status: 'completed' } }),
-        this.prisma.partners.count(),
-        this.prisma.donations.aggregate({
-          _sum: { amount: true },
-          where: { createdAt: { gte: since } },
-        }),
-        this.prisma.donations.aggregate({ _sum: { amount: true } }),
+        this.prisma.partners.count({ where: { status: 'active' } }),
+        this.sumConfirmed({ gte: since }),
+        this.sumConfirmed(),
       ]);
 
     const recentTotal = recent._sum.amount ?? 0;
@@ -45,11 +51,6 @@ export class StatsService {
     const seriesStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
     const staleBefore = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
     const thisMonth = { gte: startOfMonth };
-    const sumOf = (range: { gte: Date; lt?: Date }) =>
-      this.prisma.donations.aggregate({
-        _sum: { amount: true },
-        where: { createdAt: range },
-      });
 
     const [
       pets,
@@ -62,11 +63,15 @@ export class StatsService {
       completedAdoptionsMonth,
       rescues,
       rescuesMonth,
+      activeRescues,
+      inTreatmentRescues,
       recommendations,
       partners,
+      activePartners,
       donationsMonth,
       donationsPrevMonth,
       donationsTotal,
+      recurringDonations,
       recentRequests,
       recentRescues,
       rescueDates,
@@ -85,11 +90,22 @@ export class StatsService {
       }),
       this.prisma.rescues.count(),
       this.prisma.rescues.count({ where: { createdAt: thisMonth } }),
+      this.prisma.rescues.count({ where: { status: { not: 'recovered' } } }),
+      this.prisma.rescues.count({ where: { status: 'in_treatment' } }),
       this.prisma.recommendations.count(),
       this.prisma.partners.count(),
-      sumOf({ gte: startOfMonth }),
-      sumOf({ gte: startOfPrevMonth, lt: startOfMonth }),
-      this.prisma.donations.aggregate({ _sum: { amount: true } }),
+      this.prisma.partners.count({ where: { status: 'active' } }),
+      this.sumConfirmed({ gte: startOfMonth }),
+      this.sumConfirmed({ gte: startOfPrevMonth, lt: startOfMonth }),
+      this.sumConfirmed(),
+      this.prisma.donations.aggregate({
+        _sum: { amount: true },
+        where: {
+          status: CONFIRMED,
+          type: 'monthly',
+          createdAt: thisMonth,
+        },
+      }),
       this.prisma.adoptionRequests.findMany({
         orderBy: { requestDate: 'desc' },
         take: 5,
@@ -104,7 +120,13 @@ export class StatsService {
       this.prisma.rescues.findMany({
         orderBy: { createdAt: 'desc' },
         take: 3,
-        select: { id: true, name: true, location: true, createdAt: true },
+        select: {
+          id: true,
+          name: true,
+          location: true,
+          status: true,
+          createdAt: true,
+        },
       }),
       this.prisma.rescues.findMany({
         where: { createdAt: { gte: seriesStart } },
@@ -133,13 +155,19 @@ export class StatsService {
         completed: completedAdoptions,
         thisMonth: completedAdoptionsMonth,
       },
-      rescues: { total: rescues, thisMonth: rescuesMonth },
+      rescues: {
+        total: rescues,
+        thisMonth: rescuesMonth,
+        active: activeRescues,
+        inTreatment: inTreatmentRescues,
+      },
       recommendations,
-      partners,
+      partners: { total: partners, active: activePartners },
       donations: {
         thisMonth: donationsMonth._sum.amount ?? 0,
         previousMonth: donationsPrevMonth._sum.amount ?? 0,
         total: donationsTotal._sum.amount ?? 0,
+        recurringThisMonth: recurringDonations._sum.amount ?? 0,
       },
       recentRequests,
       recentRescues,

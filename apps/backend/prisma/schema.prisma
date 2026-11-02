@@ -123,20 +123,32 @@ model Rescues {
     id        Int      @id @default(autoincrement())
     name      String
     location  String
+    // triage | in_treatment | recovered
+    status    String   @default("triage")
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index([name])
+    @@index([status])
 }
 
 model Donations {
     id        Int      @id @default(autoincrement())
     donorName String
     amount    Float
+    // one_time | monthly
+    type      String   @default("one_time")
+    // pix | card | boleto
+    method    String   @default("pix")
+    plan      String?
+    // confirmed | pending | refunded
+    status    String   @default("confirmed")
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@index([donorName])
+    @@index([status])
+    @@index([createdAt])
 }
 
 model Recommendations {
@@ -164,8 +176,11 @@ model Partners {
     country     String
     description String
     location    String
+    // active | inactive
+    status      String   @default("active")
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
     @@index([name])
+    @@index([status])
 }
