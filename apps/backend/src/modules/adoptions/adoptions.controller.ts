@@ -10,8 +10,10 @@ import {
 import { AdoptionsService } from './adoptions.service';
 import { CreateAdoptionDto } from './dto/create-adoption.dto';
 import { UpdateAdoptionDto } from './dto/update-adoption.dto';
+import { AdminOnly } from '../../common/decorators/admin-only.decorator';
 
 @Controller('adoptions')
+@AdminOnly()
 export class AdoptionsController {
   constructor(private readonly adoptionsService: AdoptionsService) {}
 

@@ -10,8 +10,13 @@ import {
 import { DonationsService } from './donations.service';
 import { CreateDonationDto } from './dto/create-donation.dto';
 import { UpdateDonationDto } from './dto/update-donation.dto';
+import {
+  AdminOnly,
+  Public,
+} from '../../common/decorators/admin-only.decorator';
 
 @Controller('donations')
+@AdminOnly()
 export class DonationsController {
   constructor(private readonly donationsService: DonationsService) {}
 
@@ -25,6 +30,8 @@ export class DonationsController {
     return this.donationsService.findAll();
   }
 
+  // Totais agregados e anônimos, exibidos na página pública de doações.
+  @Public()
   @Get('summary')
   getSummary() {
     return this.donationsService.getSummary();

@@ -10,8 +10,10 @@ import {
 import { PartnersService } from './partners.service';
 import { CreatePartnerDto } from './dto/create-partner.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
+import { AdminOnly } from '../../common/decorators/admin-only.decorator';
 
 @Controller('partners')
+@AdminOnly()
 export class PartnersController {
   constructor(private readonly partnersService: PartnersService) {}
 

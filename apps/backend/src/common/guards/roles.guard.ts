@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '@prisma/client';
 import type { Request } from 'express';
+import { IS_PUBLIC_KEY } from '../decorators/admin-only.decorator';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import type { AuthenticatedUser } from './jwt-auth.guard';
 
@@ -19,6 +20,10 @@ export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    if (this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler())) {
+      return true;
+    }
+
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
