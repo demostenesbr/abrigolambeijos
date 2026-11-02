@@ -1,118 +1,18 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import { allAnimals, formatAge } from "../../data/animals";
 /*import VaccinatedIcon from "./../../assets/vaccinated.png";
 import NeuteredIcon from "./../../assets/castratated.png";
 import MicrochippedIcon from "./../../assets/microchipped.png";
 */
 type Tab = "adotar" | "perdidos" | "encontrados";
 
-const allAnimals = [
-  {
-    id: 1,
-    name: "Amendoim",
-    breed: "Vira-lata caramelo",
-    age: "2 anos",
-    size: "medio",
-    status: "adotar",
-    city: "São Paulo, SP",
-    img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500&h=420&fit=crop&auto=format",
-    vaccinated: true,
-    neutered: true,
-    microchipped: true,
-  },
-  {
-    id: 2,
-    name: "Bolinha",
-    breed: "Poodle mix",
-    age: "3 anos",
-    size: "pequeno",
-    status: "adotar",
-    city: "Campinas, SP",
-    img: "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=500&h=420&fit=crop&auto=format",
-    vaccinated: true,
-    neutered: true,
-    microchipped: true,
-  },
-  {
-    id: 3,
-    name: "Rex",
-    breed: "Pastor mix",
-    age: "7 anos",
-    size: "grande",
-    status: "adotar",
-    city: "São Bernardo, SP",
-    img: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&h=420&fit=crop&auto=format",
-    vaccinated: true,
-    neutered: false,
-    microchipped: false,
-  },
-  {
-    id: 4,
-    name: "Pipoca",
-    breed: "Shih-tzu mix",
-    age: "1 ano",
-    size: "pequeno",
-    status: "adotar",
-    city: "São Paulo, SP",
-    img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=500&h=420&fit=crop&auto=format",
-    vaccinated: true,
-    neutered: false,
-    microchipped: true,
-  },
-  {
-    id: 5,
-    name: "Thor",
-    breed: "Labrador mix",
-    age: "4 anos",
-    size: "grande",
-    status: "perdido",
-    city: "Guarulhos, SP",
-    img: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=500&h=420&fit=crop&auto=format",
-    vaccinated: true,
-    neutered: true,
-    microchipped: true,
-  },
-  {
-    id: 6,
-    name: "Duke",
-    breed: "Beagle",
-    age: "2 anos",
-    size: "medio",
-    status: "perdido",
-    city: "Santo André, SP",
-    img: "https://images.unsplash.com/photo-1612195583950-b8fd34c87093?w=500&h=420&fit=crop&auto=format",
-    vaccinated: true,
-    neutered: false,
-    microchipped: false,
-  },
-  {
-    id: 7,
-    name: "Toby",
-    breed: "Vira-lata",
-    age: "5 anos",
-    size: "medio",
-    status: "encontrado",
-    city: "Osasco, SP",
-    img: "https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=500&h=420&fit=crop&auto=format",
-    vaccinated: false,
-    neutered: false,
-    microchipped: false,
-  },
-  {
-    id: 8,
-    name: "Max",
-    breed: "Rottweiler mix",
-    age: "3 anos",
-    size: "grande",
-    status: "adotar",
-    city: "São Paulo, SP",
-    img: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=500&h=420&fit=crop&auto=format",
-    vaccinated: true,
-    neutered: true,
-    microchipped: true,
-  },
-];
+const tabStatus = {
+  adotar: "adotar",
+  perdidos: "perdido",
+  encontrados: "encontrado",
+} as const;
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   adotar: { label: "Para adoção", color: "bg-[#43A047] text-white" },
@@ -131,7 +31,7 @@ export default function Adopt() {
   const [sizeFilter, setSizeFilter] = useState("todos");
 
   const filtered = allAnimals.filter((a) => {
-    if (a.status !== tab) return false;
+    if (a.status !== tabStatus[tab]) return false;
     if (sizeFilter !== "todos" && a.size !== sizeFilter) return false;
     return true;
   });
@@ -260,14 +160,25 @@ export default function Adopt() {
               className="group bg-white rounded-2xl overflow-hidden border border-[#D1C4E9] hover:border-[#4D246A]/40 hover:shadow-lg transition-all duration-300"
             >
               <div className="relative h-52 bg-[#EDE7F6] overflow-hidden">
-                <Image
-                  src={a.img}
-                  alt={a.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  width={500}
-                  height={420}
-                  loading="eager"
-                />
+                {a.img ? (
+                  <Image
+                    src={a.img}
+                    alt={a.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    width={500}
+                    height={420}
+                    loading="eager"
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full flex flex-col items-center justify-center text-[#4D246A]/60"
+                    role="img"
+                    aria-label={`${a.name} (foto ainda não disponível)`}
+                  >
+                    <span className="text-6xl">🐶</span>
+                    <span className="text-xs mt-2">Foto em breve</span>
+                  </div>
+                )}
                 <span
                   className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full ${statusLabels[a.status].color}`}
                 >
@@ -276,17 +187,37 @@ export default function Adopt() {
                 <span className="absolute top-3 right-3 text-xs font-semibold bg-white/90 text-[#4D246A] px-2 py-1 rounded-full">
                   {sizeLabels[a.size]}
                 </span>
+                {a.synthetic && (
+                  <span
+                    title="Registro sintético, gerado apenas para testes"
+                    className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1 rounded-full"
+                  >
+                    <span aria-hidden="true">●</span> Dado sintético (teste)
+                  </span>
+                )}
               </div>
               <div className="p-4">
                 <div className="flex justify-between items-start mb-0.5">
                   <h3 className="text-lg font-bold text-[#263238]">{a.name}</h3>
                   <span className="text-xs bg-[#EDE7F6] text-[#4D246A] px-2 py-0.5 rounded-full font-semibold">
-                    {a.age}
+                    {formatAge(a)}
                   </span>
                 </div>
-                <p className="text-xs text-[#546E7A] mb-1">{a.breed}</p>
-                <p className="text-xs text-[#78909C] mb-3">📍 {a.city}</p>
-                <div className="flex gap-2 mb-4 flex-wrap">
+                <p className="text-xs text-[#546E7A] mb-1">
+                  {a.breed}
+                  {a.gender ? ` · ${a.gender}` : ""}
+                </p>
+                {a.city && (
+                  <p className="text-xs text-[#78909C] mb-1">📍 {a.city}</p>
+                )}
+                {a.details.length > 0 && (
+                  <ul className="text-xs text-[#78909C] mb-3 list-disc pl-4 space-y-0.5">
+                    {a.details.map((detail) => (
+                      <li key={detail}>{detail}</li>
+                    ))}
+                  </ul>
+                )}
+                <div className="flex gap-2 mb-4 flex-wrap mt-3">
                   {a.vaccinated && (
                     <span className="text-xs bg-[#43A047]/10 text-[#43A047] px-2 py-2 rounded-full border border-[#43A047]/20">
                       {/*<Image
