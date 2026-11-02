@@ -15,6 +15,25 @@ export class DonationsService {
     return this.prisma.donations.findMany();
   }
 
+  async getSummary() {
+    const [totals, donors] = await Promise.all([
+      this.prisma.donations.aggregate({
+        _sum: { amount: true },
+        _count: { _all: true },
+      }),
+      this.prisma.donations.findMany({
+        distinct: ['donorName'],
+        select: { donorName: true },
+      }),
+    ]);
+
+    return {
+      totalAmount: totals._sum.amount ?? 0,
+      donationsCount: totals._count._all,
+      donorsCount: donors.length,
+    };
+  }
+
   async findOne(id: number) {
     const donation = await this.prisma.donations.findUnique({ where: { id } });
     if (!donation) {

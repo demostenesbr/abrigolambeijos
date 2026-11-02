@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { authService, errorMessage } from "../../services/auth";
+import { AuthStats } from "../../components/stats/StatsBoards";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -114,6 +115,7 @@ export default function Register() {
             ))}
           </ul>
         </div>
+        <AuthStats />
         <div className="relative z-10 text-xs text-[#546E7A]">
           Grátis para sempre para tutores e protetores
         </div>

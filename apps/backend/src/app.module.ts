@@ -13,6 +13,7 @@ import { AdoptionRequestsModule } from './modules/adoption-requests/adoption-req
 import { AdoptersModule } from './modules/adopters/adopters.module';
 import { PartnersModule } from './modules/partners/partners.module';
 import { UsersModule } from './modules/users/users.module';
+import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UsersModule } from './modules/users/users.module';
     DonationsModule,
     RecommendationsModule,
     PartnersModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

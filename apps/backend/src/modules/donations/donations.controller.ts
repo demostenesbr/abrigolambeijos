@@ -25,6 +25,11 @@ export class DonationsController {
     return this.donationsService.findAll();
   }
 
+  @Get('summary')
+  getSummary() {
+    return this.donationsService.getSummary();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.donationsService.findOne(+id);

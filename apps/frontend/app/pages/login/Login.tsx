@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { authService, errorMessage } from "../../services/auth";
+import { AuthStats } from "../../components/stats/StatsBoards";
 
 export default function Login() {
   const router = useRouter();
@@ -65,21 +66,7 @@ export default function Login() {
             Meyre Morley, fundadora
           </p>
         </div>
-        <div className="relative z-10 grid grid-cols-3 gap-4">
-          {[
-            { n: "4.200+", l: "Resgatados" },
-            { n: "3.100+", l: "Adotados" },
-            { n: "87", l: "Parceiros" },
-          ].map((s) => (
-            <div
-              key={s.l}
-              className="bg-white/10 rounded-xl p-3 text-center backdrop-blur-sm"
-            >
-              <div className="font-bold text-[#F28C28] text-xl">{s.n}</div>
-              <div className="text-xs text-[#78909C]">{s.l}</div>
-            </div>
-          ))}
-        </div>
+        <AuthStats />
       </div>
 
       {/* Right panel */}

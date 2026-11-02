@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { statsService, type DonationSummary } from "../../services/stats";
 
 const tiers = [
   {
@@ -44,11 +45,41 @@ const impacts = [
 
 const pixKey = "abrigolambeijos@gmail.com";
 
+const brl = (value: number) =>
+  value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
 export default function Donations() {
   const [selected, setSelected] = useState(80);
   const [custom, setCustom] = useState("");
   const [method, setMethod] = useState<"pix" | "cartao" | "boleto">("pix");
   const [donated, setDonated] = useState(false);
+  const [summary, setSummary] = useState<DonationSummary | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    statsService
+      .getDonationSummary()
+      .then((data) => active && setSummary(data))
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const summaryItems = [
+    {
+      value: summary ? brl(summary.totalAmount) : "—",
+      label: "arrecadados até hoje",
+    },
+    {
+      value: summary ? summary.donationsCount.toLocaleString("pt-BR") : "—",
+      label: "doações realizadas",
+    },
+    {
+      value: summary ? summary.donorsCount.toLocaleString("pt-BR") : "—",
+      label: "doadores apoiando o abrigo",
+    },
+  ];
 
   const finalAmount = custom ? Number(custom) : selected;
 
@@ -79,6 +110,16 @@ export default function Donations() {
 
       {/* Impact numbers */}
       <section className="bg-[#1A1033] py-10 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 pb-8 mb-8 border-b border-white/10">
+          {summaryItems.map((i) => (
+            <div key={i.label} className="text-center">
+              <div className="font-bold text-3xl text-[#F28C28] mb-1">
+                {i.value}
+              </div>
+              <div className="text-xs text-[#78909C]">{i.label}</div>
+            </div>
+          ))}
+        </div>
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
           {impacts.map((i) => (
             <div key={i.value} className="text-center">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { HomeStats } from "../../components/stats/StatsBoards";
 
 const animals = [
   {
@@ -32,13 +33,6 @@ const animals = [
     tag: "Perdido",
     tagColor: "bg-[#D9534F] text-white",
   },
-];
-
-const stats = [
-  { value: "4.200+", label: "Animais resgatados" },
-  { value: "3.100+", label: "Adoções realizadas" },
-  { value: "87", label: "Parceiros ativos" },
-  { value: "12", label: "Anos de atuação" },
 ];
 
 const healthTips = [
@@ -108,21 +102,7 @@ export default function Home() {
           </div>
 
           {/* Floating stats card */}
-          <div className="hidden md:grid grid-cols-2 gap-4">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="bg-[#EDE7F6]/10 backdrop-blur-sm border border-[#D1C4E9]/20 rounded-2xl p-6 text-center"
-              >
-                <div className="font-bold text-3xl text-[#F28C28] mb-1">
-                  {s.value}
-                </div>
-                <div className="text-xs text-[#78909C] font-medium">
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
+          <HomeStats variant="hero" />
         </div>
 
         {/* Scroll indicator */}
@@ -133,19 +113,7 @@ export default function Home() {
       </section>
 
       {/* Mobile stats */}
-      <section className="md:hidden bg-[#1A1033] px-6 pb-10 grid grid-cols-2 gap-4">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="bg-[#2D1B4E] rounded-xl p-4 text-center"
-          >
-            <div className="font-bold text-2xl text-[#F28C28] mb-0.5">
-              {s.value}
-            </div>
-            <div className="text-xs text-[#78909C]">{s.label}</div>
-          </div>
-        ))}
-      </section>
+      <HomeStats variant="mobile" />
 
       {/* Featured animals */}
       <section className="max-w-6xl mx-auto px-6 py-20">
