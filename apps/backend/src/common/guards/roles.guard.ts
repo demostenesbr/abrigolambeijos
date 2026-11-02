@@ -1,8 +1,8 @@
 import {
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRole } from '@prisma/client';
@@ -37,9 +37,8 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user || !requiredRoles.includes(user.role)) {
-      throw new ForbiddenException(
-        'Você não tem permissão para acessar este recurso.',
-      );
+      // Mesma resposta de uma rota inexistente: o perfil não descobre que o recurso existe.
+      throw new NotFoundException(`Cannot ${request.method} ${request.url}`);
     }
 
     return true;

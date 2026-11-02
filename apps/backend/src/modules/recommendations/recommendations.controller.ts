@@ -6,9 +6,11 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import {
+  AdminOnly,
+  AnyAuthenticated,
+} from '../../common/decorators/admin-only.decorator';
 import type { AuthenticatedUser } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GenerateMyRecommendationsDto } from './dto/generate-recommendations.dto';
@@ -18,13 +20,15 @@ import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
 import { GenerateRecommendationsDto } from './dto/generate-recommendations.dto';
 
 @Controller('recommendations')
+@AdminOnly()
 export class RecommendationsController {
   constructor(
     private readonly recommendationsService: RecommendationsService,
   ) {}
 
+  // Única rota aberta a qualquer perfil autenticado: gera recomendações do próprio usuário.
   @Post('me')
-  @UseGuards(JwtAuthGuard)
+  @AnyAuthenticated()
   generateForMe(
     @CurrentUser() user: AuthenticatedUser,
     @Body() body: GenerateMyRecommendationsDto,

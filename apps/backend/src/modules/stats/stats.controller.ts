@@ -1,9 +1,6 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { Controller, Get } from '@nestjs/common';
 import { StatsService } from './stats.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
+import { AdminOnly } from '../../common/decorators/admin-only.decorator';
 
 @Controller('stats')
 export class StatsController {
@@ -15,8 +12,7 @@ export class StatsController {
   }
 
   @Get('admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @AdminOnly()
   getAdminOverview() {
     return this.statsService.getAdminOverview();
   }

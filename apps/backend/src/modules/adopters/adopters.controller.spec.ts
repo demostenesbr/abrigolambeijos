@@ -1,3 +1,4 @@
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdoptersController } from './adopters.controller';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -9,7 +10,11 @@ describe('AdoptersController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdoptersController],
-      providers: [AdoptersService, { provide: PrismaService, useValue: {} }],
+      providers: [
+        AdoptersService,
+        { provide: PrismaService, useValue: {} },
+        { provide: JwtService, useValue: {} },
+      ],
     }).compile();
 
     controller = module.get<AdoptersController>(AdoptersController);

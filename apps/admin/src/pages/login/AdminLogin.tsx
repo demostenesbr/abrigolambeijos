@@ -19,7 +19,7 @@ export default function AdminLogin() {
         user: { id: number; email: string; role: string };
       }>("/auth/login", form);
       if (session.user.role !== "ADMIN") {
-        throw new Error("Acesso restrito a usuários administradores.");
+        throw new Error("E-mail ou senha inválidos.");
       }
       persistAdminSession(session);
       navigate("/admin/home", { replace: true });

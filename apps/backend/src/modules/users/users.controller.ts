@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { UsersService } from './users.service';
@@ -68,9 +68,8 @@ export class UsersController {
 
   private assertSelfOrAdmin(targetId: number, currentUser: AuthenticatedUser) {
     if (currentUser.role !== UserRole.ADMIN && currentUser.id !== targetId) {
-      throw new ForbiddenException(
-        'Você só pode acessar o seu próprio usuário.',
-      );
+      // Igual a um usuário inexistente: não revela que outros usuários existem.
+      throw new NotFoundException(`Usuário #${targetId} não encontrado.`);
     }
   }
 }

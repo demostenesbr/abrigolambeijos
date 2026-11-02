@@ -10,8 +10,10 @@ import {
 import { PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
+import { AdminOnly } from '../../common/decorators/admin-only.decorator';
 
 @Controller('pets')
+@AdminOnly()
 export class PetsController {
   constructor(private readonly petsService: PetsService) {}
 
