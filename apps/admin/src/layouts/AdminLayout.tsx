@@ -175,10 +175,10 @@ export default function AdminLayout() {
               <p className="text-xs font-semibold text-[#263238]">
                 {user?.name || user?.email || "Administrador"}
               </p>
-              <p className="text-[10px] text-[#78909C]">Administradora</p>
+              <p className="text-[10px] text-[#78909C]">Administrador</p>
             </div>
             <div className="w-8 h-8 rounded-full bg-[#4D246A] flex items-center justify-center text-white text-xs font-bold">
-              AC
+              {(user?.name || user?.email || "AD").slice(0, 2).toUpperCase()}
             </div>
           </button>
         </header>

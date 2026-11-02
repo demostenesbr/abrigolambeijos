@@ -5,6 +5,18 @@ export function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+export function formatCurrency(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+// month no formato YYYY-MM
+export function formatMonth(month: string) {
+  const [year, monthIndex] = month.split("-").map(Number);
+  return new Intl.DateTimeFormat("pt-BR", { month: "short" })
+    .format(new Date(year, monthIndex - 1, 1))
+    .replace(".", "");
+}
+
 export function statusLabel(status: string) {
   const labels: Record<string, string> = {
     pending: "Pendente",

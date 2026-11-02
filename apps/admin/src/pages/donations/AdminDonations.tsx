@@ -1,100 +1,188 @@
-const doacoes = [
-  { id: "#D0512", doador: "Ana Paula Santos", valor: 150, tipo: "Mensal", metodo: "PIX", plano: "Guardião", data: "09/09/2026", status: "Confirmado" },
-  { id: "#D0511", doador: "Marcos Pereira", valor: 80, tipo: "Mensal", metodo: "Cartão", plano: "Protetor", data: "08/09/2026", status: "Confirmado" },
-  { id: "#D0510", doador: "Larissa Vieira", valor: 50, tipo: "Avulso", metodo: "PIX", plano: "—", data: "07/09/2026", status: "Confirmado" },
-  { id: "#D0509", doador: "Diego Carvalho", valor: 30, tipo: "Mensal", metodo: "PIX", plano: "Amigo", data: "06/09/2026", status: "Confirmado" },
-  { id: "#D0508", doador: "Anônimo", valor: 200, tipo: "Avulso", metodo: "Boleto", plano: "—", data: "05/09/2026", status: "Pendente" },
-  { id: "#D0507", doador: "Tatiana Mello", valor: 80, tipo: "Mensal", metodo: "Cartão", plano: "Protetor", data: "04/09/2026", status: "Confirmado" },
-  { id: "#D0506", doador: "Henrique Lima", valor: 150, tipo: "Mensal", metodo: "PIX", plano: "Guardião", data: "03/09/2026", status: "Estornado" },
-];
+import { useEffect, useMemo, useState } from "react";
+import { api } from "../../services/api";
+import { apiErrorMessage, formatCurrency, formatDate, formatMonth } from "../../utils/adminFormatters";
 
-const statusColor: Record<string, string> = {
-  Confirmado: "bg-[#E8F5E9] text-[#43A047]",
-  Pendente: "bg-[#FFF3E0] text-[#F28C28]",
-  Estornado: "bg-[#FCE4EC] text-[#D9534F]",
-};
+interface Donation {
+  id: number;
+  donorName: string;
+  amount: number;
+  createdAt: string;
+}
 
-const totalConfirmado = doacoes.filter((d) => d.status === "Confirmado").reduce((s, d) => s + d.valor, 0);
-const totalMensal = doacoes.filter((d) => d.tipo === "Mensal" && d.status === "Confirmado").reduce((s, d) => s + d.valor, 0);
-const totalAvulso = doacoes.filter((d) => d.tipo === "Avulso" && d.status === "Confirmado").reduce((s, d) => s + d.valor, 0);
+const monthKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
 export default function AdminDonations() {
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ donorName: "", amount: "" });
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .get<Donation[]>("/donations")
+      .then(setDonations)
+      .catch((requestError) => setError(apiErrorMessage(requestError)))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const metrics = useMemo(() => {
+    const now = new Date();
+    const currentKey = monthKey(now);
+    const total = donations.reduce((sum, item) => sum + item.amount, 0);
+    const thisMonth = donations.filter((item) => monthKey(new Date(item.createdAt)) === currentKey);
+    const series = Array.from({ length: 6 }, (_, index) => {
+      const month = monthKey(new Date(now.getFullYear(), now.getMonth() - 5 + index, 1));
+      const value = donations
+        .filter((item) => monthKey(new Date(item.createdAt)) === month)
+        .reduce((sum, item) => sum + item.amount, 0);
+      return { month, value };
+    });
+    return {
+      total,
+      monthTotal: thisMonth.reduce((sum, item) => sum + item.amount, 0),
+      monthCount: thisMonth.length,
+      donors: new Set(donations.map((item) => item.donorName.trim().toLowerCase())).size,
+      average: donations.length ? total / donations.length : 0,
+      series,
+      maxValue: Math.max(1, ...series.map((item) => item.value)),
+    };
+  }, [donations]);
+
+  const sorted = useMemo(
+    () => [...donations].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [donations],
+  );
+
+  const createDonation = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const created = await api.post<Donation>("/donations", {
+        donorName: form.donorName.trim(),
+        amount: Number(form.amount),
+      });
+      setDonations((current) => [created, ...current]);
+      setForm({ donorName: "", amount: "" });
+      setShowForm(false);
+    } catch (requestError) {
+      setError(apiErrorMessage(requestError));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeDonation = async (id: number) => {
+    if (!window.confirm("Remover este registro de doação?")) return;
+    try {
+      await api.delete(`/donations/${id}`);
+      setDonations((current) => current.filter((item) => item.id !== id));
+    } catch (requestError) {
+      setError(apiErrorMessage(requestError));
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#263238]">💰 Doações</h1>
-        <p className="text-sm text-[#546E7A]">Controle financeiro das doações recebidas</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#263238]">💰 Doações</h1>
+          <p className="text-sm text-[#546E7A]">Controle financeiro das doações recebidas</p>
+        </div>
+        <button
+          onClick={() => setShowForm((value) => !value)}
+          className="bg-[#4D246A] text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-[#3A1854] transition-colors"
+        >
+          {showForm ? "Fechar" : "+ Nova doação"}
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {showForm && (
+        <form onSubmit={createDonation} className="grid gap-3 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-3">
+          <input required placeholder="Nome do doador" className="rounded-xl border p-3 text-sm" value={form.donorName} onChange={(event) => setForm({ ...form, donorName: event.target.value })} />
+          <input required type="number" min="0.01" step="0.01" placeholder="Valor (R$)" className="rounded-xl border p-3 text-sm" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
+          <button disabled={saving} className="rounded-xl bg-[#4D246A] p-3 text-sm font-bold text-white disabled:opacity-60">{saving ? "Salvando..." : "Registrar doação"}</button>
+        </form>
+      )}
+
+      {error && <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-[#E8E0F0] p-5">
-          <p className="text-xs font-semibold text-[#78909C] uppercase tracking-wider mb-2">Total confirmado (mês)</p>
-          <p className="text-3xl font-bold text-[#4D246A]">R$ {totalConfirmado.toLocaleString("pt-BR")}</p>
+          <p className="text-xs font-semibold text-[#78909C] uppercase tracking-wider mb-2">Arrecadado no mês</p>
+          <p className="text-3xl font-bold text-[#4D246A]">{formatCurrency(metrics.monthTotal)}</p>
+          <p className="text-xs text-[#78909C] mt-1">{metrics.monthCount} doações no mês</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#E8E0F0] p-5">
-          <p className="text-xs font-semibold text-[#78909C] uppercase tracking-wider mb-2">Recorrentes</p>
-          <p className="text-3xl font-bold text-[#43A047]">R$ {totalMensal}</p>
-          <p className="text-xs text-[#78909C] mt-1">{doacoes.filter((d) => d.tipo === "Mensal" && d.status === "Confirmado").length} assinantes ativos</p>
+          <p className="text-xs font-semibold text-[#78909C] uppercase tracking-wider mb-2">Total desde o início</p>
+          <p className="text-3xl font-bold text-[#43A047]">{formatCurrency(metrics.total)}</p>
+          <p className="text-xs text-[#78909C] mt-1">{donations.length} doações registradas</p>
         </div>
         <div className="bg-white rounded-2xl border border-[#E8E0F0] p-5">
-          <p className="text-xs font-semibold text-[#78909C] uppercase tracking-wider mb-2">Doações avulsas</p>
-          <p className="text-3xl font-bold text-[#F28C28]">R$ {totalAvulso}</p>
-          <p className="text-xs text-[#78909C] mt-1">{doacoes.filter((d) => d.tipo === "Avulso" && d.status === "Confirmado").length} doações pontuais</p>
+          <p className="text-xs font-semibold text-[#78909C] uppercase tracking-wider mb-2">Doadores</p>
+          <p className="text-3xl font-bold text-[#F28C28]">{metrics.donors}</p>
+          <p className="text-xs text-[#78909C] mt-1">doadores distintos</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-[#E8E0F0] p-5">
+          <p className="text-xs font-semibold text-[#78909C] uppercase tracking-wider mb-2">Doação média</p>
+          <p className="text-3xl font-bold text-[#3A7CA5]">{formatCurrency(metrics.average)}</p>
         </div>
       </div>
 
-      {/* Bar chart */}
       <div className="bg-white rounded-2xl border border-[#E8E0F0] p-6">
         <p className="text-sm font-bold text-[#263238] mb-4">Arrecadação mensal (R$)</p>
-        <div className="flex items-end gap-3 h-24">
-          {[8200, 9400, 7800, 11200, 10500, 12480].map((v, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+        <div className="flex items-end gap-3 h-28">
+          {metrics.series.map((item) => (
+            <div key={item.month} className="flex-1 h-full flex flex-col items-center justify-end gap-1">
               <span className="text-[10px] text-[#78909C] font-semibold">
-                {(v / 1000).toFixed(1)}k
+                {item.value >= 1000 ? `${(item.value / 1000).toFixed(1)}k` : item.value.toFixed(0)}
               </span>
               <div
                 className="w-full rounded-t-lg bg-[#4D246A] hover:bg-[#F28C28] transition-colors cursor-default"
-                style={{ height: `${(v / 12480) * 100}%` }}
+                style={{ height: `${(item.value / metrics.maxValue) * 70}%`, minHeight: 2 }}
               />
-              <span className="text-[9px] text-[#78909C]">{["A", "M", "J", "J", "A", "S"][i]}</span>
+              <span className="text-[9px] text-[#78909C] capitalize">{formatMonth(item.month)}</span>
             </div>
           ))}
         </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-[#E8E0F0] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#F3F0F8] bg-[#F9F7FC]">
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">ID</th>
-                <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Doador</th>
-                <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Valor</th>
-                <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Tipo</th>
-                <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Método</th>
-                <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Plano</th>
-                <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Data</th>
-                <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {doacoes.map((d) => (
-                <tr key={d.id} className="border-b border-[#F3F0F8] hover:bg-[#F9F7FC] transition-colors">
-                  <td className="px-5 py-3.5 font-mono text-xs text-[#78909C]">{d.id}</td>
-                  <td className="px-4 py-3.5 font-semibold text-[#263238]">{d.doador}</td>
-                  <td className="px-4 py-3.5 font-bold text-[#4D246A]">R$ {d.valor}</td>
-                  <td className="px-4 py-3.5 text-[#546E7A]">{d.tipo}</td>
-                  <td className="px-4 py-3.5 text-[#546E7A]">{d.metodo}</td>
-                  <td className="px-4 py-3.5 text-[#546E7A]">{d.plano}</td>
-                  <td className="px-4 py-3.5 text-[#546E7A]">{d.data}</td>
-                  <td className="px-4 py-3.5">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusColor[d.status]}`}>{d.status}</span>
-                  </td>
+        {loading ? (
+          <p className="p-8 text-sm text-[#78909C]">Carregando doações...</p>
+        ) : sorted.length === 0 ? (
+          <p className="p-8 text-center text-sm text-[#78909C]">Nenhuma doação registrada.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#F3F0F8] bg-[#F9F7FC]">
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">ID</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Doador</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Valor</th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-[#78909C] uppercase tracking-wider">Data</th>
+                  <th className="px-4 py-3.5" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {sorted.map((d) => (
+                  <tr key={d.id} className="border-b border-[#F3F0F8] hover:bg-[#F9F7FC] transition-colors">
+                    <td className="px-5 py-3.5 font-mono text-xs text-[#78909C]">#{d.id}</td>
+                    <td className="px-4 py-3.5 font-semibold text-[#263238]">{d.donorName}</td>
+                    <td className="px-4 py-3.5 font-bold text-[#4D246A]">{formatCurrency(d.amount)}</td>
+                    <td className="px-4 py-3.5 text-[#546E7A]">{formatDate(d.createdAt)}</td>
+                    <td className="px-4 py-3.5 text-right">
+                      <button onClick={() => void removeDonation(d.id)} className="text-xs font-bold text-red-600 hover:underline">Remover</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
