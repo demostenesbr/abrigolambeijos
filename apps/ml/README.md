@@ -18,8 +18,8 @@
 |---|---|---|---|
 | `datasets/raw/pets.csv` | 1.500 | Sintético (`generate_datasets.py`) | **Não**: só para simulação, treino e notebooks |
 | `datasets/raw/compatibility_dataset.csv` | 750 (150 adotantes × 5 pares) | Sintético, rótulo por regra | **Não** |
-| `datasets/raw/real_pets.csv` | 8 (cresce com o Google Forms) | Cães reais do abrigo | Via `pets_processed.csv` |
-| `datasets/processed/pets_processed.csv` | 8 | Derivado de `real_pets.csv` | **Sim**, por `npm run import:real-pets` |
+| `datasets/raw/real_pets.csv` | 12 (cresce com o Google Forms) | Cães reais do abrigo | Via `pets_processed.csv` |
+| `datasets/processed/pets_processed.csv` | 12 | Derivado de `real_pets.csv` | **Sim**, por `npm run import:real-pets` |
 
 O `import:real-pets` lê somente `pets_processed.csv`; nenhum script grava o `pets.csv` sintético na tabela `Pets`.
 
