@@ -24,6 +24,7 @@ export interface Animal {
 
 interface RealPet {
   id: string;
+  photo: string | null;
   breed: string;
   gender: string;
   size: AnimalSize;
@@ -46,6 +47,7 @@ const adoptableAnimals: Animal[] = (realPets as RealPet[]).map((pet) => ({
   size: pet.size,
   status: "adotar",
   gender: pet.gender,
+  img: pet.photo ? `/pets/${pet.photo}` : undefined,
   birthDate: pet.birthDate,
   details: [
     pet.behavior,

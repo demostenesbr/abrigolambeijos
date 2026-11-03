@@ -1,5 +1,5 @@
 import Link from "next/link";
-/*import Image from "next/image";*/
+import Image from "next/image";
 import { allAnimals, formatAge } from "../../data/animals";
 import { HomeStats } from "../../components/stats/StatsBoards";
 /* 
@@ -149,18 +149,21 @@ export default function Home() {
               className="group bg-white rounded-2xl overflow-hidden border border-[#D1C4E9] hover:border-[#4D246A]/40 hover:shadow-xl hover:shadow-[#4D246A]/10 transition-all duration-300"
             >
               <div className="relative h-64 bg-[#EDE7F6] overflow-hidden">
-                {/* <Image
-                  src={a.img}
-                  alt={a.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  height={500}
-                  width={600}
-                  loading="eager"
-                /> */}
-                <div className="w-full h-full flex flex-col items-center justify-center text-[#4D246A]/50">
-                  <span className="text-6xl">🐶</span>
-                  <span className="text-xs mt-2">Foto em breve</span>
-                </div>
+                {a.img ? (
+                  <Image
+                    src={a.img}
+                    alt={a.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    height={500}
+                    width={600}
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-[#4D246A]/50">
+                    <span className="text-6xl">🐶</span>
+                    <span className="text-xs mt-2">Foto em breve</span>
+                  </div>
+                )}
                 <span className="absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full bg-[#43A047] text-white">
                   Para adoção
                 </span>

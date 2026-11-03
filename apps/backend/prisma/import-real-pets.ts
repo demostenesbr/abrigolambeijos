@@ -89,6 +89,7 @@ async function main() {
       size: r.size,
       behavioralprofile: r.behavior_profile,
       healthcondition: r.health_condition,
+      petphoto: r.photo || null,
       species: r.species,
       energyLevel: r.energy_level,
       temperament: r.temperament,

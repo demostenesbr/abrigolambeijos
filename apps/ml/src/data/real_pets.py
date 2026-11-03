@@ -1,13 +1,19 @@
 """Carga e normaliza `real_pets.csv` (export do Google Forms do abrigo).
 
-Colunas pessoais (e-mail, respons\u00e1vel, foto, n\u00famero do microchip) s\u00e3o descartadas
-na leitura. O formul\u00e1rio ainda n\u00e3o tem as perguntas de energia, sociabilidade,
+Colunas pessoais (e-mail, respons\u00e1vel, link da foto, n\u00famero do microchip) s\u00e3o descartadas
+na leitura; da foto resta s\u00f3 o nome do WEBP em hash (coluna `photo`). O formul\u00e1rio ainda n\u00e3o tem as perguntas de energia, sociabilidade,
 exerc\u00edcio etc. usadas pelo modelo, ent\u00e3o esses atributos N\u00c3O s\u00e3o inventados aqui.
 """
 
+import json
+import re
+
 import pandas as pd
 
-from ..config.settings import REAL_PETS_CSV
+from ..config.settings import PROCESSED_DIR, REAL_PETS_CSV
+
+PHOTO_MAP_PATH = PROCESSED_DIR / "photo_map.json"
+_DRIVE_ID = re.compile(r"id=([\w-]+)")
 
 _COLUMNS = {
     "Data de Entrada": "entry_date",
@@ -26,10 +32,18 @@ _COLUMNS = {
 _SIZE = {"Pequeno": "Small", "M\u00e9dio": "Medium", "Grande": "Large"}
 
 
+def _photo_files(urls: pd.Series) -> list[str | None]:
+    """Associa o link do Drive à foto WEBP já convertida (ver convert_pet_photos.py)."""
+    mapping = json.loads(PHOTO_MAP_PATH.read_text(encoding="utf-8")) if PHOTO_MAP_PATH.exists() else {}
+    ids = [(_DRIVE_ID.search(str(url)) or [None, None])[1] for url in urls]
+    return [mapping.get(drive_id) for drive_id in ids]
+
+
 def load_real_pets(path=REAL_PETS_CSV) -> pd.DataFrame:
     raw = pd.read_csv(path, encoding="utf-8")
     raw.columns = [column.strip() for column in raw.columns]
     df = raw[list(_COLUMNS)].rename(columns=_COLUMNS).copy()
+    df["photo"] = _photo_files(raw["Foto do Pet"])
 
     for column in ("entry_date", "birth_date"):
         df[column] = pd.to_datetime(df[column], format="%m/%d/%Y", errors="coerce")
@@ -116,5 +130,6 @@ def to_processed_pets(df: pd.DataFrame) -> pd.DataFrame:
         "dogs_compatibility": df["dogs_compatibility"],
         "cats_compatibility": df["cats_compatibility"],
         "attributes_source": df["attributes_source"],
+        "photo": df["photo"],
     })
     return out

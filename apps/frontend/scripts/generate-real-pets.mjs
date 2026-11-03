@@ -1,13 +1,17 @@
 // Gera app/data/real-pets.json a partir de apps/ml/datasets/raw/real_pets.csv.
 // Uso (em apps/frontend): npm run generate:pets
-// Colunas pessoais (e-mail, responsável, foto, nº do microchip) não são exportadas.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+// Colunas pessoais (e-mail, responsável, nº do microchip) não são exportadas; da foto só o nome do WEBP em hash.
+import { copyFileSync, existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const source = resolve(here, "../../ml/datasets/raw/real_pets.csv");
 const target = resolve(here, "../app/data/real-pets.json");
+// Fotos já convertidas para WEBP (apps/ml/src/data/convert_pet_photos.py), servidas em /pets/<hash>.webp.
+const photoMap = resolve(here, "../../ml/datasets/processed/photo_map.json");
+const photosDir = resolve(here, "../../admin/src/assets/pets/WEBP");
+const publicPhotosDir = resolve(here, "../public/pets");
 
 function parseCsv(text) {
   const rows = [];
@@ -63,6 +67,7 @@ const sizeOf = (value) => {
 const [header, ...rows] = parseCsv(readFileSync(source, "utf8").replace(/^\uFEFF/, ""));
 const col = (name) => header.findIndex((h) => strip(h).startsWith(strip(name)));
 const idx = {
+  photo: col("Foto do Pet"),
   entry: col("Data de Entrada"),
   breed: col("Raça"),
   gender: col("Sexo"),
@@ -87,9 +92,19 @@ const sentence = (value) => {
 const health = (value) =>
   strip(value ?? "").startsWith("saudavel") ? "Saudável" : sentence(value);
 
+const photos = existsSync(photoMap) ? JSON.parse(readFileSync(photoMap, "utf8")) : {};
+const photoOf = (url) => {
+  const file = photos[/id=([\w-]+)/.exec(url ?? "")?.[1]];
+  if (!file || !existsSync(resolve(photosDir, file))) return null;
+  mkdirSync(publicPhotosDir, { recursive: true });
+  copyFileSync(resolve(photosDir, file), resolve(publicPhotosDir, file));
+  return file;
+};
+
 const pets = rows
   .map((r, index) => ({
     id: `real-${index + 1}`,
+    photo: photoOf(r[idx.photo]),
     breed: clean(r[idx.breed]),
     gender: clean(r[idx.gender]),
     size: sizeOf(r[idx.size] ?? ""),

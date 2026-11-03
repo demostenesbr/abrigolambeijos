@@ -57,5 +57,11 @@ Detalhes em `artfacts/reports/` e nos notebooks de `notebooks/`.
 cd apps/ml
 .venv\Scripts\python.exe -m src.data.export_real_pets   # gera datasets/processed/pets_processed.csv
 cd ../backend
-npm run import:real-pets                                 # insere/atualiza os cães no banco (idempotente)
+npm run import:real-pets                                 # insere/atualiza os cães (e a foto `petphoto`) no banco (idempotente)
+cd ../frontend
+npm run generate:pets                                    # atualiza app/data/real-pets.json e copia os WEBP para public/pets
 ```
+
+## Fotos dos cães reais
+
+Os originais (JPG, PNG, HEIC) ficam em `apps/admin/src/assets/pets/original/` (ignorada pelo git, pois o nome do arquivo identifica o responsável). `python -m src.data.convert_pet_photos` gera os WEBP com nome em hash em `apps/admin/src/assets/pets/WEBP/` e o mapa `datasets/processed/photo_map.json` (ID do link do Drive → WEBP). A associação foto × cão vem do link em `real_pets.csv`: a coluna `photo` de `pets_processed.csv` vira `Pets.petphoto` no banco, e o `generate:pets` a usa no site (`/pets/<hash>.webp`). Para novas fotos, adicione o ID do Drive e o nome do original em `src/data/photo_sources.json` antes de converter.

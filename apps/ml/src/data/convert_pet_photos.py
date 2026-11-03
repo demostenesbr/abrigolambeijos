@@ -2,7 +2,7 @@
 
 Uso: python -m src.data.convert_pet_photos (dentro de apps/ml)
 
-Gera tamb\u00e9m `photo-map.json` (ID do Google Drive -> arquivo WEBP). Os nomes dos
+Gera tamb\u00e9m `datasets/processed/photo_map.json` (ID do Google Drive -> arquivo WEBP). Os nomes dos
 arquivos originais (que identificam o respons\u00e1vel) n\u00e3o s\u00e3o gravados no mapa.
 """
 
@@ -23,7 +23,7 @@ register_heif_opener()
 PETS_ASSETS = ML_ROOT.parent / "admin" / "src" / "assets" / "pets"
 ORIGINAL_DIR = PETS_ASSETS / "original"
 WEBP_DIR = PETS_ASSETS / "WEBP"
-MAP_PATH = WEBP_DIR / "photo-map.json"
+MAP_PATH = ML_ROOT / "datasets" / "processed" / "photo_map.json"
 
 MAX_SIDE = 1600
 QUALITY = 82

@@ -141,3 +141,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Fotos originais dos pets (nomes de arquivo identificam o responsável); só os WEBP em hash são versionados
+apps/admin/src/assets/pets/original/
