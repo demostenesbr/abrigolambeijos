@@ -1,7 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
+/*import Image from "next/image";*/
+import { allAnimals, formatAge } from "../../data/animals";
 import { HomeStats } from "../../components/stats/StatsBoards";
-
+/* 
 const animals = [
   {
     id: 1,
@@ -34,6 +35,8 @@ const animals = [
     tagColor: "bg-[#D9534F] text-white",
   },
 ];
+* Featured animals data
+ */
 
 const healthTips = [
   {
@@ -59,6 +62,11 @@ const healthTips = [
 ];
 
 export default function Home() {
+
+  const featuredAnimals = allAnimals
+    .filter((a) => a.status === "adotar")
+    .slice(0, 3);
+
   return (
     <div>
       {/* Hero */}
@@ -135,24 +143,26 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {animals.map((a) => (
+          {featuredAnimals.map((a) => (
             <div
               key={a.id}
               className="group bg-white rounded-2xl overflow-hidden border border-[#D1C4E9] hover:border-[#4D246A]/40 hover:shadow-xl hover:shadow-[#4D246A]/10 transition-all duration-300"
             >
               <div className="relative h-64 bg-[#EDE7F6] overflow-hidden">
-                <Image
+                {/* <Image
                   src={a.img}
                   alt={a.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   height={500}
                   width={600}
                   loading="eager"
-                />
-                <span
-                  className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full ${a.tagColor}`}
-                >
-                  {a.tag}
+                /> */}
+                <div className="w-full h-full flex flex-col items-center justify-center text-[#4D246A]/50">
+                  <span className="text-6xl">🐶</span>
+                  <span className="text-xs mt-2">Foto em breve</span>
+                </div>
+                <span className="absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full bg-[#43A047] text-white">
+                  Para adoção
                 </span>
               </div>
               <div className="p-5">
@@ -161,7 +171,7 @@ export default function Home() {
                     {a.name}
                   </h3>
                   <span className="text-xs bg-[#EDE7F6] text-[#4D246A] px-2 py-1 rounded-full font-semibold">
-                    {a.age}
+                    {formatAge(a)}
                   </span>
                 </div>
                 <p className="text-sm text-[#546E7A] mb-4">{a.breed}</p>
@@ -169,7 +179,7 @@ export default function Home() {
                   href="/adotar"
                   className="block w-full text-center text-sm font-semibold bg-[#F28C28] text-white py-2.5 rounded-full hover:bg-[#D97820] transition-colors"
                 >
-                  {a.tag === "Perdido" ? "Ajudar a encontrar" : "Quero adotar"}
+                  Quero adotar
                 </Link>
               </div>
             </div>
