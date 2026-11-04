@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { api } from "../../services/api";
 import { apiErrorMessage } from "../../utils/adminFormatters";
+import { usePagedList } from "../../hooks/usePagedList";
+import Pagination from "../../components/common/Pagination";
 
 interface Adopter {
   id: number;
@@ -32,12 +34,14 @@ export default function AdminAdopters() {
 
   useEffect(() => { queueMicrotask(() => { void loadAdopters(); }); }, []);
 
+  const deferredQuery = useDeferredValue(query);
   const filtered = useMemo(() => {
-    const term = query.toLowerCase();
+    const term = deferredQuery.toLowerCase();
     return adopters.filter((adopter) =>
       `${adopter.name} ${adopter.email}`.toLowerCase().includes(term),
     );
-  }, [adopters, query]);
+  }, [adopters, deferredQuery]);
+  const paged = usePagedList(filtered);
 
   const createAdopter = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -85,8 +89,9 @@ export default function AdminAdopters() {
       {error && <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
       <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
         <div className="border-b border-[#EEE7F1] p-4"><input aria-label="Buscar adotantes" placeholder="Buscar por nome ou e-mail..." className="w-full rounded-xl border border-[#E5DCEB] px-4 py-3 text-sm outline-none focus:border-[#4D246A] sm:max-w-sm" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
-        {loading ? <Loading /> : filtered.length === 0 ? <Empty text="Nenhum adotante encontrado." /> : <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-[#FAF8FC] text-xs uppercase tracking-wider text-[#78909C]"><tr><th className="px-5 py-4">Adotante</th><th className="px-5 py-4">Contato</th><th className="px-5 py-4">Cadastro</th><th className="px-5 py-4 text-right">Ações</th></tr></thead><tbody className="divide-y divide-[#F1ECF4]">{filtered.map((adopter) => <tr key={adopter.id} className="hover:bg-[#FCFAFD]"><td className="px-5 py-4"><p className="font-bold text-[#2F2140]">{adopter.name}</p><p className="text-xs text-[#78909C]">#{adopter.id}</p></td><td className="px-5 py-4 text-[#546E7A]">{adopter.email}<br />{adopter.phone ?? "Telefone não informado"}</td><td className="px-5 py-4 text-[#546E7A]">{new Date(adopter.createdAt).toLocaleDateString("pt-BR")}</td><td className="px-5 py-4 text-right"><button onClick={() => void removeAdopter(adopter.id)} className="text-xs font-bold text-red-600 hover:underline">Remover</button></td></tr>)}</tbody></table></div>}
-      </section>
+        {loading ? <Loading /> : filtered.length === 0 ? <Empty text="Nenhum adotante encontrado." /> : <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-[#FAF8FC] text-xs uppercase tracking-wider text-[#78909C]"><tr><th className="px-5 py-4">Adotante</th><th className="px-5 py-4">Contato</th><th className="px-5 py-4">Cadastro</th><th className="px-5 py-4 text-right">Ações</th></tr></thead><tbody className="divide-y divide-[#F1ECF4]">{paged.pageItems.map((adopter) => <tr key={adopter.id} className="hover:bg-[#FCFAFD]"><td className="px-5 py-4"><p className="font-bold text-[#2F2140]">{adopter.name}</p><p className="text-xs text-[#78909C]">#{adopter.id}</p></td><td className="px-5 py-4 text-[#546E7A]">{adopter.email}<br />{adopter.phone ?? "Telefone não informado"}</td><td className="px-5 py-4 text-[#546E7A]">{new Date(adopter.createdAt).toLocaleDateString("pt-BR")}</td><td className="px-5 py-4 text-right"><button onClick={() => void removeAdopter(adopter.id)} className="text-xs font-bold text-red-600 hover:underline">Remover</button></td></tr>)}</tbody></table></div>}
+                <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} pageSize={paged.pageSize} onChange={paged.setPage} />
+              </section>
     </div>
   );
 }

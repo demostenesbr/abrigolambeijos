@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { usePagedList } from "../../hooks/usePagedList";
+import Pagination from "../../components/common/Pagination";
 import { api } from "../../services/api";
 import { apiErrorMessage, formatCurrency, formatDate, formatMonth, statusClass } from "../../utils/adminFormatters";
 
@@ -69,7 +71,7 @@ export default function AdminDonations() {
     () => [...donations].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     [donations],
   );
-
+  const paged = usePagedList(sorted);
   const createDonation = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
@@ -208,7 +210,7 @@ export default function AdminDonations() {
                 </tr>
               </thead>
               <tbody>
-                {sorted.map((d) => (
+                {paged.pageItems.map((d) => (
                   <tr key={d.id} className="border-b border-[#F3F0F8] hover:bg-[#F9F7FC] transition-colors">
                     <td className="px-5 py-3.5 font-mono text-xs text-[#78909C]">#{d.id}</td>
                     <td className="px-4 py-3.5 font-semibold text-[#263238]">{d.donorName}</td>
@@ -236,6 +238,7 @@ export default function AdminDonations() {
             </table>
           </div>
         )}
+        <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} pageSize={paged.pageSize} onChange={paged.setPage} />
       </div>
     </div>
   );

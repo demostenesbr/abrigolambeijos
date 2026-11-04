@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const MAX_SIDE = 1600;
 const QUALITY = 0.82;
@@ -34,12 +34,18 @@ export default function PetPhotoConverter({ onConverted }: PetPhotoConverterProp
   const [photo, setPhoto] = useState<ConvertedPhoto | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(
+    () => () => {
+      if (photo) URL.revokeObjectURL(photo.previewUrl);
+    },
+    [photo],
+  );
+
   const handleFile = async (file?: File) => {
     if (!file) return;
     setError(null);
     try {
       const converted = await toHashedWebp(file);
-      if (photo) URL.revokeObjectURL(photo.previewUrl);
       setPhoto(converted);
       onConverted?.(converted.fileName);
     } catch {

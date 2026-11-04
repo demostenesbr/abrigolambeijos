@@ -6,8 +6,10 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { PetsService } from './pets.service';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetDto } from './dto/update-pet.dto';
 import { AdminOnly } from '../../common/decorators/admin-only.decorator';
@@ -23,8 +25,8 @@ export class PetsController {
   }
 
   @Get()
-  findAll() {
-    return this.petsService.findAll();
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.petsService.findAll(query);
   }
 
   @Get(':id')

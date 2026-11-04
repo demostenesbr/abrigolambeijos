@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { usePagedList } from "../../hooks/usePagedList";
+import Pagination from "../../components/common/Pagination";
 import { api } from "../../services/api";
 import { apiErrorMessage, formatDate, statusClass, statusLabel } from "../../utils/adminFormatters";
 
@@ -38,6 +40,7 @@ export default function AdminAdoptionRequests() {
     () => filter === "all" ? requests : requests.filter((request) => request.status === filter),
     [filter, requests],
   );
+  const paged = usePagedList(visibleRequests);
 
   const updateStatus = async (id: number, status: string) => {
     try {
@@ -61,8 +64,8 @@ export default function AdminAdoptionRequests() {
         <div className="flex flex-wrap gap-2 border-b border-[#EEE7F1] p-4">
           {["all", ...requestStatuses].map((status) => <button key={status} onClick={() => setFilter(status)} className={`rounded-full px-4 py-2 text-xs font-bold ${filter === status ? "bg-[#4D246A] text-white" : "bg-[#F5F1F8] text-[#6D5D78]"}`}>{status === "all" ? "Todas" : statusLabel(status)}</button>)}
         </div>
-        {loading ? <p className="p-8 text-sm text-[#78909C]">Carregando solicitações...</p> : visibleRequests.length === 0 ? <p className="p-8 text-center text-sm text-[#78909C]">Nenhuma solicitação neste filtro.</p> : <div className="grid gap-4 p-4 lg:grid-cols-2">{visibleRequests.map((request) => <article key={request.id} className="rounded-2xl border border-[#EEE7F1] p-5 transition hover:shadow-md"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold text-[#F28C28]">SOLICITAÇÃO #{request.id}</p><h2 className="mt-1 text-lg font-black text-[#2F2140]">{request.petName}</h2></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(request.status)}`}>{statusLabel(request.status)}</span></div><div className="mt-4 grid gap-2 text-sm text-[#546E7A] sm:grid-cols-2"><p><strong className="text-[#37474F]">Candidato:</strong> {request.userName}</p><p><strong className="text-[#37474F]">Data:</strong> {formatDate(request.requestDate)}</p><p><strong className="text-[#37474F]">E-mail:</strong> {request.email}</p><p><strong className="text-[#37474F]">Telefone:</strong> {request.phone}</p></div><p className="mt-4 line-clamp-2 text-sm text-[#78909C]">{request.home || request.experience}</p><div className="mt-5 flex flex-wrap gap-2 border-t border-[#F1ECF4] pt-4">{requestStatuses.filter((status) => status !== request.status).map((status) => <button key={status} onClick={() => void updateStatus(request.id, status)} className={`rounded-lg px-3 py-2 text-xs font-bold ${status === "approved" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{status === "approved" ? "Aprovar" : "Recusar"}</button>)}</div></article>)}</div>}
-      </section>
+        {loading ? <p className="p-8 text-sm text-[#78909C]">Carregando solicitações...</p> : visibleRequests.length === 0 ? <p className="p-8 text-center text-sm text-[#78909C]">Nenhuma solicitação neste filtro.</p> : <div className="grid gap-4 p-4 lg:grid-cols-2">{paged.pageItems.map((request) => <article key={request.id} className="rounded-2xl border border-[#EEE7F1] p-5 transition hover:shadow-md"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold text-[#F28C28]">SOLICITAÇÃO #{request.id}</p><h2 className="mt-1 text-lg font-black text-[#2F2140]">{request.petName}</h2></div><span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass(request.status)}`}>{statusLabel(request.status)}</span></div><div className="mt-4 grid gap-2 text-sm text-[#546E7A] sm:grid-cols-2"><p><strong className="text-[#37474F]">Candidato:</strong> {request.userName}</p><p><strong className="text-[#37474F]">Data:</strong> {formatDate(request.requestDate)}</p><p><strong className="text-[#37474F]">E-mail:</strong> {request.email}</p><p><strong className="text-[#37474F]">Telefone:</strong> {request.phone}</p></div><p className="mt-4 line-clamp-2 text-sm text-[#78909C]">{request.home || request.experience}</p><div className="mt-5 flex flex-wrap gap-2 border-t border-[#F1ECF4] pt-4">{requestStatuses.filter((status) => status !== request.status).map((status) => <button key={status} onClick={() => void updateStatus(request.id, status)} className={`rounded-lg px-3 py-2 text-xs font-bold ${status === "approved" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{status === "approved" ? "Aprovar" : "Recusar"}</button>)}</div></article>)}</div>}
+      <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} pageSize={paged.pageSize} onChange={paged.setPage} /></section>
     </div>
   );
 }

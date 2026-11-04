@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { usePagedList } from "../../hooks/usePagedList";
+import Pagination from "../../components/common/Pagination";
 import { api } from "../../services/api";
 import { apiErrorMessage, formatDate, statusClass, statusLabel } from "../../utils/adminFormatters";
 
@@ -63,10 +65,12 @@ export default function AdminPartners() {
       .finally(() => setLoading(false));
   }, []);
 
+  const deferredSearch = useDeferredValue(search);
   const filtered = useMemo(() => {
-    const term = search.toLowerCase();
+    const term = deferredSearch.toLowerCase();
     return partners.filter((p) => `${p.name} ${p.type} ${p.city}`.toLowerCase().includes(term));
-  }, [partners, search]);
+  }, [partners, deferredSearch]);
+  const paged = usePagedList(filtered);
 
   const typeCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -162,7 +166,7 @@ export default function AdminPartners() {
         <p className="rounded-2xl bg-white p-8 text-center text-sm text-[#78909C]">Nenhum parceiro encontrado.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((p) => (
+          {paged.pageItems.map((p) => (
             <div key={p.id} className="bg-white rounded-2xl border border-[#E8E0F0] p-5 hover:shadow-md hover:border-[#4D246A]/30 transition-all">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
@@ -205,6 +209,7 @@ export default function AdminPartners() {
           ))}
         </div>
       )}
+      <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} pageSize={paged.pageSize} onChange={paged.setPage} />
 
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
