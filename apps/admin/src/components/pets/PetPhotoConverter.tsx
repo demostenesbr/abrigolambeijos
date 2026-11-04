@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const MAX_SIDE = 1600;
-const QUALITY = 0.82;
+const MAX_FILE_BYTES = 15 * 1024 * 1024;
 
 interface ConvertedPhoto {
   fileName: string;
@@ -13,26 +12,34 @@ interface PetPhotoConverterProps {
   onConverted?: (fileName: string) => void;
 }
 
-async function toHashedWebp(file: File): Promise<ConvertedPhoto> {
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-  const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
+type WorkerResult = { ok: true; fileName: string; blob: Blob } | { ok: false; message: string };
 
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", QUALITY));
-  if (!blob || blob.type !== "image/webp") throw new Error("Este navegador não consegue gerar WEBP.");
-
-  const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
-  const hash = Array.from(new Uint8Array(digest).slice(0, 8), (byte) => byte.toString(16).padStart(2, "0")).join("");
-  return { fileName: `${hash}.webp`, blob, previewUrl: URL.createObjectURL(blob) };
+// O worker só é criado quando há um arquivo: sem upload, nenhum custo extra.
+function convertInWorker(file: File, workerRef: { current: Worker | null }): Promise<ConvertedPhoto> {
+  return new Promise((resolve, reject) => {
+    workerRef.current?.terminate();
+    const worker = new Worker(new URL("../../workers/petPhoto.worker.ts", import.meta.url), { type: "module" });
+    workerRef.current = worker;
+    worker.onmessage = (event: MessageEvent<WorkerResult>) => {
+      worker.terminate();
+      if (workerRef.current === worker) workerRef.current = null;
+      const result = event.data;
+      if (result.ok) resolve({ fileName: result.fileName, blob: result.blob, previewUrl: URL.createObjectURL(result.blob) });
+      else reject(new Error(result.message));
+    };
+    worker.onerror = () => {
+      worker.terminate();
+      reject(new Error("Falha no worker"));
+    };
+    worker.postMessage({ file });
+  });
 }
 
 export default function PetPhotoConverter({ onConverted }: PetPhotoConverterProps) {
   const [photo, setPhoto] = useState<ConvertedPhoto | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [converting, setConverting] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
 
   useEffect(
     () => () => {
@@ -41,15 +48,24 @@ export default function PetPhotoConverter({ onConverted }: PetPhotoConverterProp
     [photo],
   );
 
+  useEffect(() => () => workerRef.current?.terminate(), []);
+
   const handleFile = async (file?: File) => {
     if (!file) return;
     setError(null);
+    if (file.size > MAX_FILE_BYTES) {
+      setError("A imagem excede 15 MB. Escolha um arquivo menor.");
+      return;
+    }
+    setConverting(true);
     try {
-      const converted = await toHashedWebp(file);
+      const converted = await convertInWorker(file, workerRef);
       setPhoto(converted);
       onConverted?.(converted.fileName);
     } catch {
       setError("Não foi possível converter a imagem. Use JPG, PNG ou WEBP (HEIC deve ser convertido antes).");
+    } finally {
+      setConverting(false);
     }
   };
 
@@ -59,6 +75,7 @@ export default function PetPhotoConverter({ onConverted }: PetPhotoConverterProp
         Foto do pet (convertida para WEBP)
         <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-1 block w-full text-sm" onChange={(event) => void handleFile(event.target.files?.[0])} />
       </label>
+      {converting && <p className="mt-2 text-xs text-[#78909C]">Convertendo imagem...</p>}
       {error && <p role="alert" className="mt-2 text-xs text-red-600">{error}</p>}
       {photo && (
         <div className="mt-3 flex items-center gap-3">
