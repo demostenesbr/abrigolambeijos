@@ -1,4 +1,5 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import SearchInput from "../../components/common/SearchInput";
 import { api } from "../../services/api";
 import { apiErrorMessage } from "../../utils/adminFormatters";
 import PetPhotoConverter from "../../components/pets/PetPhotoConverter";
@@ -36,7 +37,6 @@ interface PetsPage {
 }
 
 const PAGE_SIZE = 12;
-const SEARCH_DEBOUNCE_MS = 300;
 
 const photoUrls = import.meta.glob<string>("../../assets/pets/WEBP/*.webp", { eager: true, query: "?url", import: "default" });
 const petPhotoUrl = (file?: string | null) => (file ? photoUrls[`../../assets/pets/WEBP/${file}`] : undefined);
@@ -74,7 +74,6 @@ const formFromPet = (pet: Pet): PetFormValues => ({
 export default function AdminPets() {
   const [data, setData] = useState<PetsPage | null>(null);
   const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
   const [query, setQuery] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [showForm, setShowForm] = useState(false);
@@ -83,13 +82,10 @@ export default function AdminPets() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setQuery(searchInput.trim());
-      setPage(1);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [searchInput]);
+  const handleSearch = useCallback((value: string) => {
+    setQuery(value.trim());
+    setPage(1);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -214,13 +210,7 @@ export default function AdminPets() {
 
       <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
         <div className="border-b border-[#EEE7F1] p-4">
-          <input
-            aria-label="Buscar pets"
-            placeholder="Buscar por nome, raça ou RG..."
-            className="w-full rounded-xl border border-[#E5DCEB] px-4 py-3 text-sm outline-none focus:border-[#4D246A] sm:max-w-md"
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-          />
+          <SearchInput ariaLabel="Buscar pets" placeholder="Buscar por nome, raça ou RG..." onSearch={handleSearch} />
         </div>
         {loading && !data ? (
           <p className="p-8 text-sm text-[#78909C]">Carregando pets...</p>
@@ -239,46 +229,53 @@ export default function AdminPets() {
   );
 }
 
-// O estado do formulário fica isolado aqui: digitar não re-renderiza a lista de pets.
+// Campos não controlados (FormData): digitar não dispara nenhum re-render do formulário nem da lista.
 function PetForm({ editingPet, saving, onSubmit }: { editingPet: Pet | null; saving: boolean; onSubmit: (form: PetFormValues) => void }) {
-  const [form, setForm] = useState<PetFormValues>(() => (editingPet ? formFromPet(editingPet) : emptyForm()));
-  const set = (key: keyof PetFormValues) => (value: string) => setForm((current) => ({ ...current, [key]: value }));
+  const [initial] = useState<PetFormValues>(() => (editingPet ? formFromPet(editingPet) : emptyForm()));
+  const photoRef = useRef("");
+  const handleConverted = useCallback((value: string) => { photoRef.current = value; }, []);
 
   const textFields: [keyof PetFormValues, string][] = [
     ["name", "Nome de exibição"], ["animalname", "Nome no registro"], ["rganimal", "RG do animal"], ["race", "Raça"],
   ];
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving) return;
+    const data = new FormData(event.currentTarget);
+    const values = { ...initial };
+    for (const key of Object.keys(initial) as (keyof PetFormValues)[]) {
+      if (key !== "petphoto") values[key] = String(data.get(key) ?? "").trim();
+    }
+    values.petphoto = photoRef.current;
+    onSubmit(values);
+  };
+
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (!saving) onSubmit(form);
-      }}
-      className="rounded-2xl bg-white p-5 shadow-sm"
-    >
+    <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-5 shadow-sm">
       <h2 className="mb-4 text-lg font-black text-[#2F2140]">{editingPet ? `Editar pet #${editingPet.id}` : "Cadastrar pet"}</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {textFields.map(([key, label]) => (
-          <input key={key} required placeholder={label} className="rounded-xl border p-3 text-sm" value={form[key]} onChange={(event) => set(key)(event.target.value)} />
+          <input key={key} required name={key} placeholder={label} className="rounded-xl border p-3 text-sm" defaultValue={initial[key]} />
         ))}
-        <Select label="Espécie" value={form.species} onChange={set("species")} options={[["Dog", "Cão"], ["Cat", "Gato"]]} />
-        <Select label="Sexo" value={form.gender} onChange={set("gender")} options={[["Macho", "Macho"], ["Fêmea", "Fêmea"]]} />
-        <Select label="Porte" value={form.size} onChange={set("size")} options={Object.entries(SIZE_PT)} />
+        <Select name="species" label="Espécie" defaultValue={initial.species} options={[["Dog", "Cão"], ["Cat", "Gato"]]} />
+        <Select name="gender" label="Sexo" defaultValue={initial.gender} options={[["Macho", "Macho"], ["Fêmea", "Fêmea"]]} />
+        <Select name="size" label="Porte" defaultValue={initial.size} options={Object.entries(SIZE_PT)} />
         <label className="text-xs font-semibold text-[#78909C]">Idade (anos)
-          <input required type="number" min="0" className="mt-1 w-full rounded-xl border p-3 text-sm" value={form.estimatedchronologicalage} onChange={(event) => set("estimatedchronologicalage")(event.target.value)} />
+          <input required name="estimatedchronologicalage" type="number" min="0" className="mt-1 w-full rounded-xl border p-3 text-sm" defaultValue={initial.estimatedchronologicalage} />
         </label>
         <label className="text-xs font-semibold text-[#78909C]">Entrada
-          <input required type="date" className="mt-1 w-full rounded-xl border p-3 text-sm" value={form.dateentry} onChange={(event) => set("dateentry")(event.target.value)} />
+          <input required name="dateentry" type="date" className="mt-1 w-full rounded-xl border p-3 text-sm" defaultValue={initial.dateentry} />
         </label>
         <label className="text-xs font-semibold text-[#78909C]">Nascimento
-          <input required type="date" className="mt-1 w-full rounded-xl border p-3 text-sm" value={form.birthdate} onChange={(event) => set("birthdate")(event.target.value)} />
+          <input required name="birthdate" type="date" className="mt-1 w-full rounded-xl border p-3 text-sm" defaultValue={initial.birthdate} />
         </label>
-        <PetPhotoConverter onConverted={set("petphoto")} />
-        <Select label="Energia (ML)" value={form.energyLevel} onChange={set("energyLevel")} options={levelOptions} />
-        <Select label="Temperamento (ML)" value={form.temperament} onChange={set("temperament")} options={Object.entries(TEMPERAMENT_PT)} />
-        <Select label="Sociabilidade (ML)" value={form.sociability} onChange={set("sociability")} options={levelOptions} />
-        <Select label="Exercício (ML)" value={form.exerciseNeed} onChange={set("exerciseNeed")} options={levelOptions} />
-        <Select label="Adaptação (ML)" value={form.apartmentAdaptability} onChange={set("apartmentAdaptability")} options={levelOptions} />
+        <PetPhotoConverter onConverted={handleConverted} />
+        <Select name="energyLevel" label="Energia (ML)" defaultValue={initial.energyLevel} options={levelOptions} />
+        <Select name="temperament" label="Temperamento (ML)" defaultValue={initial.temperament} options={Object.entries(TEMPERAMENT_PT)} />
+        <Select name="sociability" label="Sociabilidade (ML)" defaultValue={initial.sociability} options={levelOptions} />
+        <Select name="exerciseNeed" label="Exercício (ML)" defaultValue={initial.exerciseNeed} options={levelOptions} />
+        <Select name="apartmentAdaptability" label="Adaptação (ML)" defaultValue={initial.apartmentAdaptability} options={levelOptions} />
       </div>
       <button disabled={saving} className="mt-5 rounded-xl bg-[#4D246A] px-5 py-3 text-sm font-bold text-white disabled:opacity-60">
         {saving ? "Salvando..." : editingPet ? "Salvar alterações" : "Salvar pet"}
@@ -317,10 +314,10 @@ const PetCard = memo(function PetCard({ pet, onEdit, onRemove }: { pet: Pet; onE
   );
 });
 
-function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: [string, string][] }) {
+function Select({ name, label, defaultValue, options }: { name: string; label: string; defaultValue: string; options: [string, string][] }) {
   return (
     <label className="text-xs font-semibold text-[#78909C]">{label}
-      <select className="mt-1 w-full rounded-xl border bg-white p-3 text-sm text-[#263238]" value={value} onChange={(event) => onChange(event.target.value)}>
+      <select name={name} className="mt-1 w-full rounded-xl border bg-white p-3 text-sm text-[#263238]" defaultValue={defaultValue}>
         {options.map(([optionValue, optionLabel]) => <option key={optionValue} value={optionValue}>{optionLabel}</option>)}
       </select>
     </label>

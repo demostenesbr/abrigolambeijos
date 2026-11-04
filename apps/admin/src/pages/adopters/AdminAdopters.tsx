@@ -1,4 +1,6 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import SearchInput from "../../components/common/SearchInput";
+import { matchesSearch } from "../../utils/search";
 import { api } from "../../services/api";
 import { apiErrorMessage } from "../../utils/adminFormatters";
 import { usePagedList } from "../../hooks/usePagedList";
@@ -16,7 +18,6 @@ export default function AdminAdopters() {
   const [adopters, setAdopters] = useState<Adopter[]>([]);
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,23 +35,18 @@ export default function AdminAdopters() {
 
   useEffect(() => { queueMicrotask(() => { void loadAdopters(); }); }, []);
 
-  const deferredQuery = useDeferredValue(query);
-  const filtered = useMemo(() => {
-    const term = deferredQuery.toLowerCase();
-    return adopters.filter((adopter) =>
-      `${adopter.name} ${adopter.email}`.toLowerCase().includes(term),
-    );
-  }, [adopters, deferredQuery]);
+  const filtered = useMemo(
+    () => adopters.filter((adopter) => matchesSearch(query, adopter.id, adopter.name, adopter.email, adopter.phone)),
+    [adopters, query],
+  );
   const paged = usePagedList(filtered);
 
-  const createAdopter = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const createAdopter = async (form: { name: string; email: string; phone: string }) => {
     setSaving(true);
     setError(null);
     try {
       const created = await api.post<Adopter>("/adopters", form);
       setAdopters((current) => [created, ...current]);
-      setForm({ name: "", email: "", phone: "" });
       setShowForm(false);
     } catch (requestError) {
       setError(apiErrorMessage(requestError));
@@ -80,19 +76,34 @@ export default function AdminAdopters() {
         <Stat label="Com telefone" value={adopters.filter((item) => item.phone).length} color="text-emerald-600" />
         <Stat label="Encontrados" value={filtered.length} color="text-[#F28C28]" />
       </div>
-      {showForm && <form onSubmit={createAdopter} className="grid gap-3 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-4">
-        <input required placeholder="Nome completo" className="rounded-xl border p-3 text-sm" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-        <input required type="email" placeholder="E-mail" className="rounded-xl border p-3 text-sm" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
-        <input placeholder="Telefone" className="rounded-xl border p-3 text-sm" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
-        <button disabled={saving} className="rounded-xl bg-[#4D246A] p-3 text-sm font-bold text-white disabled:opacity-60">{saving ? "Salvando..." : "Salvar"}</button>
-      </form>}
+      {showForm && <AdopterForm saving={saving} onSubmit={createAdopter} />}
       {error && <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
       <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
-        <div className="border-b border-[#EEE7F1] p-4"><input aria-label="Buscar adotantes" placeholder="Buscar por nome ou e-mail..." className="w-full rounded-xl border border-[#E5DCEB] px-4 py-3 text-sm outline-none focus:border-[#4D246A] sm:max-w-sm" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
+        <div className="border-b border-[#EEE7F1] p-4"><SearchInput ariaLabel="Buscar adotantes" placeholder="Buscar por nome, e-mail, telefone ou código..." onSearch={setQuery} /></div>
         {loading ? <Loading /> : filtered.length === 0 ? <Empty text="Nenhum adotante encontrado." /> : <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-[#FAF8FC] text-xs uppercase tracking-wider text-[#78909C]"><tr><th className="px-5 py-4">Adotante</th><th className="px-5 py-4">Contato</th><th className="px-5 py-4">Cadastro</th><th className="px-5 py-4 text-right">Ações</th></tr></thead><tbody className="divide-y divide-[#F1ECF4]">{paged.pageItems.map((adopter) => <tr key={adopter.id} className="hover:bg-[#FCFAFD]"><td className="px-5 py-4"><p className="font-bold text-[#2F2140]">{adopter.name}</p><p className="text-xs text-[#78909C]">#{adopter.id}</p></td><td className="px-5 py-4 text-[#546E7A]">{adopter.email}<br />{adopter.phone ?? "Telefone não informado"}</td><td className="px-5 py-4 text-[#546E7A]">{new Date(adopter.createdAt).toLocaleDateString("pt-BR")}</td><td className="px-5 py-4 text-right"><button onClick={() => void removeAdopter(adopter.id)} className="text-xs font-bold text-red-600 hover:underline">Remover</button></td></tr>)}</tbody></table></div>}
                 <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} pageSize={paged.pageSize} onChange={paged.setPage} />
               </section>
     </div>
+  );
+}
+
+function AdopterForm({ saving, onSubmit }: { saving: boolean; onSubmit: (form: { name: string; email: string; phone: string }) => void }) {
+  // Campos não controlados: digitar não re-renderiza o formulário.
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (saving) return;
+        const data = new FormData(event.currentTarget);
+        onSubmit({ name: String(data.get("name") ?? "").trim(), email: String(data.get("email") ?? "").trim(), phone: String(data.get("phone") ?? "").trim() });
+      }}
+      className="grid gap-3 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-4"
+    >
+      <input required name="name" placeholder="Nome completo" className="rounded-xl border p-3 text-sm" />
+      <input required name="email" type="email" placeholder="E-mail" className="rounded-xl border p-3 text-sm" />
+      <input name="phone" placeholder="Telefone" className="rounded-xl border p-3 text-sm" />
+      <button disabled={saving} className="rounded-xl bg-[#4D246A] p-3 text-sm font-bold text-white disabled:opacity-60">{saving ? "Salvando..." : "Salvar"}</button>
+    </form>
   );
 }
 

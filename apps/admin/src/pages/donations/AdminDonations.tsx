@@ -27,7 +27,6 @@ export default function AdminDonations() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,8 +71,7 @@ export default function AdminDonations() {
     [donations],
   );
   const paged = usePagedList(sorted);
-  const createDonation = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const createDonation = async (form: typeof emptyForm) => {
     setSaving(true);
     setError(null);
     try {
@@ -86,7 +84,6 @@ export default function AdminDonations() {
         status: "confirmed",
       });
       setDonations((current) => [created, ...current]);
-      setForm(emptyForm);
       setShowForm(false);
     } catch (requestError) {
       setError(apiErrorMessage(requestError));
@@ -129,23 +126,7 @@ export default function AdminDonations() {
         </button>
       </div>
 
-      {showForm && (
-        <form onSubmit={createDonation} className="grid gap-3 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-3">
-          <input required placeholder="Nome do doador" className="rounded-xl border p-3 text-sm" value={form.donorName} onChange={(event) => setForm({ ...form, donorName: event.target.value })} />
-          <input required type="number" min="0.01" step="0.01" placeholder="Valor (R$)" className="rounded-xl border p-3 text-sm" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
-          <select className="rounded-xl border p-3 text-sm" value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value })}>
-            <option value="one_time">Doação única</option>
-            <option value="monthly">Doação mensal</option>
-          </select>
-          <select className="rounded-xl border p-3 text-sm" value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value })}>
-            <option value="pix">Pix</option>
-            <option value="card">Cartão</option>
-            <option value="boleto">Boleto</option>
-          </select>
-          <input placeholder="Plano (opcional)" className="rounded-xl border p-3 text-sm" value={form.plan} onChange={(event) => setForm({ ...form, plan: event.target.value })} />
-          <button disabled={saving} className="rounded-xl bg-[#4D246A] p-3 text-sm font-bold text-white disabled:opacity-60">{saving ? "Salvando..." : "Registrar doação"}</button>
-        </form>
-      )}
+      {showForm && <DonationForm saving={saving} onSubmit={createDonation} />}
 
       {error && <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
 
@@ -241,5 +222,38 @@ export default function AdminDonations() {
         <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} pageSize={paged.pageSize} onChange={paged.setPage} />
       </div>
     </div>
+  );
+}
+
+function DonationForm({ saving, onSubmit }: { saving: boolean; onSubmit: (form: typeof emptyForm) => void }) {
+  // Campos não controlados: digitar não re-renderiza o formulário.
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving) return;
+    const data = new FormData(event.currentTarget);
+    onSubmit({
+      donorName: String(data.get("donorName") ?? ""),
+      amount: String(data.get("amount") ?? ""),
+      type: String(data.get("type") ?? "one_time"),
+      method: String(data.get("method") ?? "pix"),
+      plan: String(data.get("plan") ?? ""),
+    });
+  };
+  return (
+    <form onSubmit={handleSubmit} className="grid gap-3 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-3">
+      <input required name="donorName" placeholder="Nome do doador" className="rounded-xl border p-3 text-sm" />
+      <input required name="amount" type="number" min="0.01" step="0.01" placeholder="Valor (R$)" className="rounded-xl border p-3 text-sm" />
+      <select name="type" defaultValue="one_time" className="rounded-xl border p-3 text-sm">
+        <option value="one_time">Doação única</option>
+        <option value="monthly">Doação mensal</option>
+      </select>
+      <select name="method" defaultValue="pix" className="rounded-xl border p-3 text-sm">
+        <option value="pix">Pix</option>
+        <option value="card">Cartão</option>
+        <option value="boleto">Boleto</option>
+      </select>
+      <input name="plan" placeholder="Plano (opcional)" className="rounded-xl border p-3 text-sm" />
+      <button disabled={saving} className="rounded-xl bg-[#4D246A] p-3 text-sm font-bold text-white disabled:opacity-60">{saving ? "Salvando..." : "Registrar doação"}</button>
+    </form>
   );
 }

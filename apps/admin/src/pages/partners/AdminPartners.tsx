@@ -1,4 +1,6 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import SearchInput from "../../components/common/SearchInput";
+import { matchesSearch } from "../../utils/search";
 import { usePagedList } from "../../hooks/usePagedList";
 import Pagination from "../../components/common/Pagination";
 import { api } from "../../services/api";
@@ -53,7 +55,6 @@ export default function AdminPartners() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState(emptyForm);
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -65,11 +66,10 @@ export default function AdminPartners() {
       .finally(() => setLoading(false));
   }, []);
 
-  const deferredSearch = useDeferredValue(search);
-  const filtered = useMemo(() => {
-    const term = deferredSearch.toLowerCase();
-    return partners.filter((p) => `${p.name} ${p.type} ${p.city}`.toLowerCase().includes(term));
-  }, [partners, deferredSearch]);
+  const filtered = useMemo(
+    () => partners.filter((p) => matchesSearch(search, p.id, p.name, p.type, p.city, p.state, p.contact, p.email, statusLabel(p.status))),
+    [partners, search],
+  );
   const paged = usePagedList(filtered);
 
   const typeCounts = useMemo(() => {
@@ -78,8 +78,12 @@ export default function AdminPartners() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [partners]);
 
-  const createPartner = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const typeOptions = useMemo(
+    () => [...new Set([...typeSuggestions, ...typeCounts.map(([type]) => type)])],
+    [typeCounts],
+  );
+
+  const createPartner = async (form: typeof emptyForm) => {
     setSaving(true);
     setError(null);
     try {
@@ -88,7 +92,6 @@ export default function AdminPartners() {
         location: `${form.city}, ${form.state}`,
       });
       setPartners((current) => [created, ...current]);
-      setForm(emptyForm);
       setShowForm(false);
     } catch (requestError) {
       setError(apiErrorMessage(requestError));
@@ -117,8 +120,6 @@ export default function AdminPartners() {
       setError(apiErrorMessage(requestError));
     }
   };
-
-  const inputClass = "w-full border border-[#D1C4E9] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#4D246A] bg-[#F9F7FC]";
 
   return (
     <div className="space-y-6">
@@ -151,11 +152,10 @@ export default function AdminPartners() {
       )}
 
       <div className="bg-white rounded-2xl border border-[#E8E0F0] p-4">
-        <input
-          type="text"
-          placeholder="Buscar por nome, tipo ou cidade..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+        <SearchInput
+          ariaLabel="Buscar parceiros"
+          placeholder="Buscar por nome, tipo, cidade, contato ou código..."
+          onSearch={setSearch}
           className="w-full bg-[#F3F0F8] border border-[#D1C4E9] rounded-xl px-4 py-2 text-sm text-[#263238] placeholder-[#78909C] focus:outline-none focus:border-[#4D246A]"
         />
       </div>
@@ -167,7 +167,7 @@ export default function AdminPartners() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {paged.pageItems.map((p) => (
-            <div key={p.id} className="bg-white rounded-2xl border border-[#E8E0F0] p-5 hover:shadow-md hover:border-[#4D246A]/30 transition-all">
+            <div key={p.id} className="bg-white rounded-2xl border border-[#E8E0F0] p-5 hover:shadow-md hover:border-[#4D246A]/30 transition-shadow">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <p className="font-bold text-[#263238]">{p.name}</p>
@@ -212,50 +212,57 @@ export default function AdminPartners() {
       <Pagination page={paged.page} totalPages={paged.totalPages} total={paged.total} pageSize={paged.pageSize} onChange={paged.setPage} />
 
       {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
-          <form onSubmit={createPartner} className="bg-white rounded-2xl border border-[#E8E0F0] w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#263238]">Novo parceiro</h2>
-              <button type="button" onClick={() => setShowForm(false)} className="text-[#78909C] hover:text-[#263238] text-xl">×</button>
-            </div>
-            <div className="space-y-4">
-              {fields.map((f) => (
-                <div key={f.key}>
-                  <label className="block text-xs font-semibold text-[#37474F] mb-1.5 uppercase tracking-wider">{f.label}</label>
-                  <input
-                    required
-                    type={f.type ?? "text"}
-                    placeholder={f.placeholder}
-                    value={form[f.key]}
-                    onChange={(event) => setForm({ ...form, [f.key]: event.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-              ))}
-              <div>
-                <label className="block text-xs font-semibold text-[#37474F] mb-1.5 uppercase tracking-wider">Tipo</label>
-                <input
-                  required
-                  list="partner-types"
-                  placeholder="Ex: Veterinária"
-                  value={form.type}
-                  onChange={(event) => setForm({ ...form, type: event.target.value })}
-                  className={inputClass}
-                />
-                <datalist id="partner-types">
-                  {[...new Set([...typeSuggestions, ...typeCounts.map(([type]) => type)])].map((t) => (
-                    <option key={t} value={t} />
-                  ))}
-                </datalist>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 border border-[#D1C4E9] text-[#546E7A] font-semibold py-2.5 rounded-full text-sm hover:bg-[#F3F0F8] transition-colors">Cancelar</button>
-                <button disabled={saving} className="flex-1 bg-[#4D246A] text-white font-semibold py-2.5 rounded-full text-sm hover:bg-[#3A1854] transition-colors disabled:opacity-60">{saving ? "Salvando..." : "Cadastrar"}</button>
-              </div>
-            </div>
-          </form>
-        </div>
+        <PartnerModal
+          saving={saving}
+          typeOptions={typeOptions}
+          onClose={() => setShowForm(false)}
+          onSubmit={createPartner}
+        />
       )}
+    </div>
+  );
+}
+
+function PartnerModal({ saving, typeOptions, onClose, onSubmit }: { saving: boolean; typeOptions: string[]; onClose: () => void; onSubmit: (form: typeof emptyForm) => void }) {
+  const inputClass = "w-full border border-[#D1C4E9] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#4D246A] bg-[#F9F7FC]";
+  // Campos não controlados: digitar não re-renderiza o modal.
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (saving) return;
+    const data = new FormData(event.currentTarget);
+    const values = { ...emptyForm };
+    for (const key of Object.keys(emptyForm) as (keyof typeof emptyForm)[]) values[key] = String(data.get(key) ?? "").trim();
+    onSubmit(values);
+  };
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#E8E0F0] w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-bold text-[#263238]">Novo parceiro</h2>
+          <button type="button" onClick={onClose} className="text-[#78909C] hover:text-[#263238] text-xl">×</button>
+        </div>
+        <div className="space-y-4">
+          {fields.map((f) => (
+            <div key={f.key}>
+              <label className="block text-xs font-semibold text-[#37474F] mb-1.5 uppercase tracking-wider">{f.label}</label>
+              <input required name={f.key} type={f.type ?? "text"} placeholder={f.placeholder} defaultValue={emptyForm[f.key]} className={inputClass} />
+            </div>
+          ))}
+          <div>
+            <label className="block text-xs font-semibold text-[#37474F] mb-1.5 uppercase tracking-wider">Tipo</label>
+            <input required name="type" list="partner-types" placeholder="Ex: Veterinária" className={inputClass} />
+            <datalist id="partner-types">
+              {typeOptions.map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 border border-[#D1C4E9] text-[#546E7A] font-semibold py-2.5 rounded-full text-sm hover:bg-[#F3F0F8] transition-colors">Cancelar</button>
+            <button disabled={saving} className="flex-1 bg-[#4D246A] text-white font-semibold py-2.5 rounded-full text-sm hover:bg-[#3A1854] transition-colors disabled:opacity-60">{saving ? "Salvando..." : "Cadastrar"}</button>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }
