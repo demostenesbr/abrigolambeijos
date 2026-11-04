@@ -9,14 +9,14 @@ interface Donation {
   donorName: string;
   amount: number;
   type: "one_time" | "monthly";
-  method: "pix" | "card" | "boleto";
+  method: "pix";
   plan: string | null;
   status: "confirmed" | "pending" | "refunded";
   createdAt: string;
 }
 
 const typeLabels = { one_time: "Única", monthly: "Mensal" } as const;
-const methodLabels = { pix: "Pix", card: "Cartão", boleto: "Boleto" } as const;
+const methodLabels = { pix: "Pix" } as const;
 const emptyForm = { donorName: "", amount: "", type: "one_time", method: "pix", plan: "" };
 
 const monthKey = (date: Date) =>
@@ -249,8 +249,6 @@ function DonationForm({ saving, onSubmit }: { saving: boolean; onSubmit: (form: 
       </select>
       <select name="method" defaultValue="pix" className="rounded-xl border p-3 text-sm">
         <option value="pix">Pix</option>
-        <option value="card">Cartão</option>
-        <option value="boleto">Boleto</option>
       </select>
       <input name="plan" placeholder="Plano (opcional)" className="rounded-xl border p-3 text-sm" />
       <button disabled={saving} className="rounded-xl bg-[#4D246A] p-3 text-sm font-bold text-white disabled:opacity-60">{saving ? "Salvando..." : "Registrar doação"}</button>
