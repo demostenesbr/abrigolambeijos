@@ -18,6 +18,7 @@ import { PetsController } from '../../modules/pets/pets.controller';
 import { PetsService } from '../../modules/pets/pets.service';
 import { RecommendationsController } from '../../modules/recommendations/recommendations.controller';
 import { RecommendationsService } from '../../modules/recommendations/recommendations.service';
+import { ModelReportService } from '../../modules/recommendations/model-report.service';
 import { RescuesController } from '../../modules/rescues/rescues.controller';
 import { RescuesService } from '../../modules/rescues/rescues.service';
 import { StatsController } from '../../modules/stats/stats.controller';
@@ -91,6 +92,7 @@ describe('Role-based access (backend)', () => {
           StatsService,
           UsersService,
         ].map((provide) => ({ provide, useValue: service })),
+        { provide: ModelReportService, useValue: {} },
         {
           provide: JwtService,
           useValue: {

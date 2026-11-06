@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { CreatePartnerDto } from './dto/create-partner.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
+import { PartnerApplicationDto } from './dto/partner-application.dto';
 
 @Injectable()
 export class PartnersService {
@@ -9,6 +10,17 @@ export class PartnersService {
 
   create(createPartnerDto: CreatePartnerDto) {
     return this.prisma.partners.create({ data: createPartnerDto });
+  }
+
+  async submitApplication(application: PartnerApplicationDto) {
+    await this.prisma.partners.create({
+      data: {
+        ...application,
+        location: `${application.city}, ${application.state}`,
+        status: 'pending',
+      },
+    });
+    return { message: 'Solicitação de parceria recebida para análise.' };
   }
 
   // Somente campos públicos de parceiros ativos; contato e endereço ficam restritos ao ADMIN.

@@ -9,6 +9,7 @@ import AdiminAdoptions from "../pages/adoptions/main";
 import AdminRescues from "../pages/rescues/main";
 import AdminDonations from "../pages/donations/main";
 import AdminRecommedations from "../pages/recommendations/main";
+import AdminAIModel from "../pages/ai-model/AdminAIModel";
 import AdminPartners from "../pages/partners/main";
 import AdminProfile from "../pages/profile/AdminProfile";
 
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
       { path: "resgates", Component: AdminRescues },
       { path: "doacoes", Component: AdminDonations },
       { path: "recomendacoes", Component: AdminRecommedations },
+      { path: "modelo-ia", Component: AdminAIModel },
       { path: "parceiros", Component: AdminPartners },
     ],
   },

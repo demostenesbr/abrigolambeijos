@@ -16,12 +16,21 @@
 
 | Arquivo | Linhas | Origem | Vai para o banco? |
 |---|---|---|---|
-| `datasets/raw/pets.csv` | 1.500 | Sintético (`generate_datasets.py`) | **Não**: só para simulação, treino e notebooks |
+| `datasets/raw/pets.csv` | 1.500 cães | Sintético (`generate_datasets.py`) | **Não**: só para simulação, treino e notebooks |
 | `datasets/raw/compatibility_dataset.csv` | 750 (150 adotantes × 5 pares) | Sintético, rótulo por regra | **Não** |
 | `datasets/raw/real_pets.csv` | 12 (cresce com o Google Forms) | Cães reais do abrigo | Via `pets_processed.csv` |
 | `datasets/processed/pets_processed.csv` | 12 | Derivado de `real_pets.csv` | **Sim**, por `npm run import:real-pets` |
 
 O `import:real-pets` lê somente `pets_processed.csv`; nenhum script grava o `pets.csv` sintético na tabela `Pets`.
+
+O catálogo sintético anterior continha 754 gatos; eles foram substituídos por
+cães sintéticos, preservando os demais cães, os identificadores e os pares
+existentes. Os pares afetados tiveram os atributos e rótulos recalculados. Há
+três níveis de energia e cinco temperamentos simulados. A coluna
+`cats_compatibility` continua indicando se um **cão** pode conviver com gatos
+que já estejam na casa do adotante; ela não representa um gato no catálogo.
+Os atributos e a compatibilidade são gerados por regras e não comprovam
+comportamento real ou características inerentes a raças.
 
 ## Como executar
 
@@ -32,20 +41,34 @@ cd apps/ml
 .venv\Scripts\python.exe -m pytest tests -q              # testes de inferência
 ```
 
+Para substituir gatos em um catálogo sintético existente sem alterar os cães
+existentes, use `.venv\Scripts\python.exe -m src.data.generate_datasets --replace-cats`
+e depois execute o treinamento. O comando de geração sem essa opção recria todo
+o catálogo e todos os pares.
+
 ## Resultados atuais (conjunto de teste, 150 pares / 30 adotantes)
 
 | Modelo | F1 (CV) | F1 (teste) | Accuracy (teste) |
 |---|---|---|---|
-| Baseline (classe majoritária) | 0,710 | 0,723 | — |
-| Random Forest (selecionado) | 0,832 | 0,826 | 0,807 |
+| Baseline (classe majoritária) | 0,533 | 0,718 | 0,560 |
+| Random Forest (selecionado) | 0,829 | 0,811 | 0,813 |
 
 Detalhes em `artfacts/reports/` e nos notebooks de `notebooks/`.
+
+No painel administrativo, **Modelo de ML** lê os metadados e relatórios do
+treinamento por `GET /recommendations/model/report` (restrito a administradores).
+As contagens de animais vêm dos arquivos atuais `pets.csv` e
+`pets_processed.csv`, enquanto os tamanhos de treino e teste vêm dos metadados
+do modelo. Após atualizar as bases ou treinar novamente, mantenha esses arquivos
+e os relatórios acessíveis ao backend em `ML_APP_PATH` (por padrão, `apps/ml`).
+Se algum arquivo estiver ausente ou os relatórios forem inconsistentes, a
+página informa a indisponibilidade em vez de apresentar números antigos.
 
 ## Limitações
 
 - **Rótulos sintéticos:** `compatibility` é calculado por uma regra (`src/data/generate_datasets.py`), não por adoções reais. O modelo aprende essa regra; as métricas não medem acerto em adoções reais.
 - **Base pequena:** catálogo sintético de 1.500 animais (`pets.csv`), mas só 150 adotantes × 5 pares = 750 linhas rotuladas. Os dados sintéticos ficam em `datasets/raw/pets.csv` e nunca entram em `real_pets.csv` nem no banco.
-- **Classes levemente desbalanceadas:** cerca de 55% / 45%. Por isso o F1 é comparado a um baseline.
+- **Classes levemente desbalanceadas:** cerca de 52% / 48%. Por isso o F1 é comparado a um baseline. A classe majoritária varia entre alguns folds, produzindo F1 zero em um fold do baseline.
 - **Avaliação por adotante:** treino e teste não compartilham adotantes (`GroupShuffleSplit` e `StratifiedGroupKFold`), para evitar avaliação otimista.
 - **Atributos dos cães reais inferidos:** `datasets/raw/real_pets.csv` (exportação do Google Forms, versionado no git) não pergunta energia, sociabilidade, exercício, adaptação a apartamento nem compatibilidade com crianças/cães/gatos. `src/data/real_pets.py::infer_ml_attributes` preenche esses campos por regra (idade, porte e perfil comportamental; gatos sempre `False`). São suposições, marcadas com `attributes_source = inferred`; as recomendações para esses cães refletem essas regras, não observação direta.
 - **Privacidade:** o CSV bruto traz e-mail, responsável e link de foto. `src/data/real_pets.py` descarta essas colunas; o `pets_processed.csv` não contém dados pessoais.

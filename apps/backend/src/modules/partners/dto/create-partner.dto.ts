@@ -1,6 +1,11 @@
 import { IsEmail, IsIn, IsOptional, IsString } from 'class-validator';
 
-export const PARTNER_STATUSES = ['active', 'inactive'] as const;
+export const PARTNER_STATUSES = [
+  'active',
+  'inactive',
+  'pending',
+  'rejected',
+] as const;
 
 export class CreatePartnerDto {
   @IsString()

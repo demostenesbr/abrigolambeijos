@@ -176,7 +176,7 @@ model Partners {
     country     String
     description String
     location    String
-    // active | inactive
+    // active | inactive | pending | rejected
     status      String   @default("active")
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt

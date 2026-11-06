@@ -96,3 +96,10 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Solicitações de parceria
+
+O formulário público de cadastro envia solicitações para
+`POST /partners/applications`. Elas são gravadas como `pending`, sem criar conta
+ou atribuir permissões. No painel administrativo de parceiros, um administrador
+pode aprovar (`active`) ou recusar (`rejected`) a solicitação. Apenas parceiros
+ativos são exibidos publicamente.

@@ -22,6 +22,7 @@ Uso:
 
 from __future__ import annotations
 
+import argparse
 import random
 from pathlib import Path
 
@@ -36,7 +37,6 @@ COMPATIBILITY_THRESHOLD = 0.7  # >=70% dos critérios batendo = compatível
 RAW_DIR = Path(__file__).resolve().parents[2] / "datasets" / "raw"
 
 DOG_BREEDS = ["Labrador", "Vira-lata", "Poodle", "Bulldog", "Shih Tzu", "Border Collie"]
-CAT_BREEDS = ["SRD", "Siamês", "Persa", "Maine Coon", "Angorá"]
 CITIES = ["São Paulo, SP", "Rio de Janeiro, RJ", "Curitiba, PR", "Belo Horizonte, MG"]
 LEVELS = ["Low", "Medium", "High"]
 TEMPERAMENTS = ["Calm", "Playful", "Independent", "Affectionate", "Territorial"]
@@ -46,42 +46,38 @@ def _bool(rng: random.Random, p_true: float = 0.5) -> bool:
     return rng.random() < p_true
 
 
+def generate_dog(pet_id: int, rng: random.Random) -> dict:
+    size = rng.choice(["Small", "Medium", "Large"])
+    energy_level = rng.choice(LEVELS)
+    temperament = rng.choice(TEMPERAMENTS)
+    return {
+        "id": pet_id,
+        "name": f"Pet{pet_id}",
+        "species": "Dog",
+        "age": round(rng.uniform(0.3, 14.0), 1),
+        "size": size,
+        "type": "Canine",
+        "breed": rng.choice(DOG_BREEDS),
+        "gender": rng.choice(["Male", "Female"]),
+        "location": rng.choice(CITIES),
+        "energy_level": energy_level,
+        "temperament": temperament,
+        "sociability": rng.choice(LEVELS),
+        "children_compatibility": _bool(rng, 0.65),
+        "dogs_compatibility": _bool(rng, 0.6),
+        "cats_compatibility": _bool(rng, 0.55),
+        "exercise_need": energy_level,
+        "special_needs": _bool(rng, 0.1),
+        "vaccinated": _bool(rng, 0.85),
+        "neutered": _bool(rng, 0.7),
+        "trained": _bool(rng, 0.4),
+        "apartment_adaptability": rng.choice(LEVELS),
+        "description": f"Dog de porte {size.lower()}, temperamento {temperament.lower()}.",
+    }
+
+
 def generate_pets(rng: random.Random) -> pd.DataFrame:
-    rows = []
-    for pet_id in range(1, NUM_PETS + 1):
-        species = rng.choice(["Dog", "Cat"])
-        is_dog = species == "Dog"
-        size = rng.choice(["Small", "Medium", "Large"]) if is_dog else "Small"
-        energy_level = rng.choice(LEVELS)
-        # Cães de maior energia tendem a precisar de mais exercício (correlação simples e documentada)
-        exercise_need = energy_level if is_dog else rng.choice(["Low", "Medium"])
-        rows.append(
-            {
-                "id": pet_id,
-                "name": f"Pet{pet_id}",
-                "species": species,
-                "age": round(rng.uniform(0.3, 14.0), 1),
-                "size": size,
-                "type": "Canine" if is_dog else "Feline",
-                "breed": rng.choice(DOG_BREEDS if is_dog else CAT_BREEDS),
-                "gender": rng.choice(["Male", "Female"]),
-                "location": rng.choice(CITIES),
-                "energy_level": energy_level,
-                "temperament": rng.choice(TEMPERAMENTS),
-                "sociability": rng.choice(LEVELS),
-                "children_compatibility": _bool(rng, 0.65),
-                "dogs_compatibility": _bool(rng, 0.6),
-                "cats_compatibility": _bool(rng, 0.55),
-                "exercise_need": exercise_need,
-                "special_needs": _bool(rng, 0.1),
-                "vaccinated": _bool(rng, 0.85),
-                "neutered": _bool(rng, 0.7),
-                "trained": _bool(rng, 0.4),
-                "apartment_adaptability": rng.choice(LEVELS),
-                "description": f"{species} de porte {size.lower()}, temperamento {rng.choice(TEMPERAMENTS).lower()}.",
-            }
-        )
-    return pd.DataFrame(rows)
+    return pd.DataFrame(generate_dog(pet_id, rng) for pet_id in range(1, NUM_PETS + 1))
 
 
 def generate_adopters(rng: random.Random) -> pd.DataFrame:
@@ -190,18 +186,70 @@ def generate_compatibility_dataset(
     return pd.DataFrame(rows)
 
 
+def replace_cats(
+    pets: pd.DataFrame, compatibility: pd.DataFrame, rng: random.Random
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Substitui gatos por cães e recalcula apenas os pares afetados."""
+    if pets["id"].duplicated().any() or not pets["species"].isin(["Dog", "Cat"]).all():
+        raise ValueError("Catálogo contém IDs duplicados ou espécies inesperadas.")
+    if not compatibility["pet_id"].isin(pets["id"]).all():
+        raise ValueError("Há pares que referenciam animais ausentes do catálogo.")
+
+    updated_pets = pets.copy()
+    updated_pairs = compatibility.copy()
+    cat_mask = updated_pets["species"] == "Cat"
+    cat_ids = updated_pets.loc[cat_mask, "id"].tolist()
+    replacements = pd.DataFrame([generate_dog(int(pet_id), rng) for pet_id in cat_ids])
+    if not cat_ids:
+        return updated_pets, updated_pairs
+    updated_pets.loc[cat_mask, replacements.columns] = replacements.to_numpy()
+    dogs_by_id = updated_pets.set_index("id")
+    feature_map = {
+        "age": "pet_age",
+        "energy_level": "pet_energy_level",
+        "temperament": "pet_temperament",
+        "sociability": "pet_sociability",
+        "children_compatibility": "children_compatibility",
+        "dogs_compatibility": "dogs_compatibility",
+        "cats_compatibility": "cats_compatibility",
+        "exercise_need": "exercise_need",
+        "apartment_adaptability": "apartment_adaptability",
+    }
+    for index in updated_pairs.index[updated_pairs["pet_id"].isin(cat_ids)]:
+        pet = dogs_by_id.loc[updated_pairs.at[index, "pet_id"]]
+        for source, target in feature_map.items():
+            updated_pairs.at[index, target] = pet[source]
+        updated_pairs.at[index, "compatibility"] = int(
+            _compatibility_score(updated_pairs.loc[index], pet) >= COMPATIBILITY_THRESHOLD
+        )
+    return updated_pets, updated_pairs
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--replace-cats",
+        action="store_true",
+        help="Substitui apenas gatos no catálogo existente e atualiza os pares afetados.",
+    )
+    args = parser.parse_args()
     rng = random.Random(SEED)
     RAW_DIR.mkdir(parents=True, exist_ok=True)
 
-    pets = generate_pets(rng)
     pets_path = RAW_DIR / "pets.csv"
+    compat_path = RAW_DIR / "compatibility_dataset.csv"
+    if args.replace_cats:
+        pets = pd.read_csv(pets_path)
+        compatibility = pd.read_csv(compat_path)
+        count = int((pets["species"] == "Cat").sum())
+        pets, compatibility = replace_cats(pets, compatibility, rng)
+        print(f"Gatos substituídos por cães: {count}")
+    else:
+        pets = generate_pets(rng)
+        adopters = generate_adopters(rng)
+        compatibility = generate_compatibility_dataset(adopters, pets, rng)
     pets.to_csv(pets_path, index=False)
     print(f"pets.csv gerado: {len(pets)} linhas -> {pets_path}")
-
-    adopters = generate_adopters(rng)
-    compatibility = generate_compatibility_dataset(adopters, pets, rng)
-    compat_path = RAW_DIR / "compatibility_dataset.csv"
     compatibility.to_csv(compat_path, index=False)
     positive_rate = compatibility["compatibility"].mean()
     print(

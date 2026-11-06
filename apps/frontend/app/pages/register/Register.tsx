@@ -5,12 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { authService, errorMessage } from "../../services/auth";
 import { AuthStats } from "../../components/stats/StatsBoards";
+import PartnerApplication from "./PartnerApplication";
 
 export default function Register() {
+  const [option, setOption] = useState<"adopter" | "adoption" | "partner">("adopter");
   const [form, setForm] = useState({
     name: "",
     email: "",
-    phone: "",
     password: "",
     confirm: "",
     agreed: false,
@@ -57,14 +58,13 @@ export default function Register() {
             Bem-vindo à família!
           </h2>
           <p className="text-[#546E7A] leading-relaxed mb-8">
-            Sua conta foi criada com sucesso. Verifique seu e-mail para ativar o
-            cadastro e começar a fazer a diferença na vida dos animais.
+            Sua conta de adotante foi criada com sucesso e já está disponível para uso.
           </p>
           <Link
             href="/entrar"
             className="inline-block bg-[#F28C28] text-white font-semibold px-10 py-4 rounded-full hover:bg-[#D97820] transition-colors"
           >
-            Ir para o login
+            Continuar
           </Link>
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function Register() {
         <div className="w-full max-w-sm py-8">
           <div className="mb-8">
             <h1 className="font-bold text-4xl text-[#263238] mb-2">
-              Criar conta
+              Cadastre-se
             </h1>
             <p className="text-sm text-[#546E7A]">
               Já tem conta?{" "}
@@ -138,6 +138,31 @@ export default function Register() {
             </p>
           </div>
 
+          <fieldset className="mb-6">
+            <legend className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#37474F]">Como deseja participar?</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { value: "adopter", label: "Adotante" },
+                { value: "adoption", label: "Adoções" },
+                { value: "partner", label: "Parceiros" },
+              ] as const).map((item) => (
+                <label key={item.value} className={`cursor-pointer rounded-xl border p-2 text-center text-sm font-semibold focus-within:ring-2 focus-within:ring-[#4D246A] focus-within:ring-offset-2 ${option === item.value ? "border-[#4D246A] bg-[#EDE7F6] text-[#4D246A]" : "border-[#D1C4E9] bg-white text-[#546E7A]"}`}>
+                  <input type="radio" name="registration-option" value={item.value} checked={option === item.value} onChange={() => { setOption(item.value); setError(null); }} className="sr-only" />
+                  {item.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {option === "adoption" ? (
+            <div className="space-y-4 rounded-2xl border border-[#D1C4E9] bg-white p-5">
+              <h2 className="font-bold text-[#263238]">Quero adotar</h2>
+              <p className="text-sm leading-6 text-[#546E7A]">Conheça os animais disponíveis para adoção. O envio de solicitações de adoção pelo site ainda não está disponível.</p>
+              <Link href="/adotar" className="inline-block rounded-full bg-[#F28C28] px-5 py-3 text-sm font-semibold text-white hover:bg-[#D97820]">Conhecer animais</Link>
+            </div>
+          ) : option === "partner" ? (
+            <PartnerApplication />
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-[#37474F] mb-1.5 uppercase tracking-wider">
@@ -162,18 +187,6 @@ export default function Register() {
                 placeholder="seu@email.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#37474F] mb-1.5 uppercase tracking-wider">
-                Telefone
-              </label>
-              <input
-                type="tel"
-                placeholder="(11)90000-0000"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className={inputClass}
               />
             </div>
@@ -245,6 +258,7 @@ export default function Register() {
               {loading ? "Criando..." : "Criar conta grátis"}
             </button>
           </form>
+          )}
         </div>
       </div>
     </div>

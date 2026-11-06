@@ -71,7 +71,7 @@ export default function AdminDashboard() {
         { label: "Resgates registrados", value: data.rescues.total.toLocaleString("pt-BR"), delta: `${monthDelta(data.rescues.thisMonth)} · ${data.rescues.active} ativos (${data.rescues.inTreatment} em tratamento)`, icon: "🚑", color: "bg-[#E3F2FD] text-[#3A7CA5]" },
         { label: "Doações (mês)", value: formatCurrency(data.donations.thisMonth), delta: `${donationDelta(data.donations.thisMonth, data.donations.previousMonth)} · ${formatCurrency(data.donations.recurringThisMonth)} recorrentes`, icon: "💰", color: "bg-[#FFFDE7] text-[#F4C95D]" },
         { label: "Recomendações geradas (ML)", value: data.recommendations.toLocaleString("pt-BR"), delta: "Modelo de compatibilidade", icon: "🧠", color: "bg-[#EDE7F6] text-[#4D246A]" },
-        { label: "Parceiros", value: data.partners.active.toLocaleString("pt-BR"), delta: `Ativos de ${data.partners.total} cadastrados`, icon: "🤝", color: "bg-[#E8F5E9] text-[#43A047]" },
+        { label: "Parceiros", value: data.partners.active.toLocaleString("pt-BR"), delta: `Ativos de ${data.partners.total} registros (inclui solicitações)`, icon: "🤝", color: "bg-[#E8F5E9] text-[#43A047]" },
         { label: "Total arrecadado", value: formatCurrency(data.donations.total), delta: "Desde o início", icon: "🏦", color: "bg-[#FFFDE7] text-[#F4C95D]" },
       ]
     : [];

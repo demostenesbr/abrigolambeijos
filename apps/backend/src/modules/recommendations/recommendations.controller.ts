@@ -18,12 +18,14 @@ import { RecommendationsService } from './recommendations.service';
 import { CreateRecommendationDto } from './dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from './dto/update-recommendation.dto';
 import { GenerateRecommendationsDto } from './dto/generate-recommendations.dto';
+import { ModelReportService } from './model-report.service';
 
 @Controller('recommendations')
 @AdminOnly()
 export class RecommendationsController {
   constructor(
     private readonly recommendationsService: RecommendationsService,
+    private readonly modelReportService: ModelReportService,
   ) {}
 
   // Única rota aberta a qualquer perfil autenticado: gera recomendações do próprio usuário.
@@ -53,6 +55,11 @@ export class RecommendationsController {
   @Get()
   findAll() {
     return this.recommendationsService.findAll();
+  }
+
+  @Get('model/report')
+  getModelReport() {
+    return this.modelReportService.getReport();
   }
 
   @Get(':id')

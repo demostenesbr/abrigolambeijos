@@ -22,6 +22,7 @@ const navItems = [
   { to: "/admin/resgates", icon: "🚑", label: "Resgates" },
   { to: "/admin/doacoes", icon: "💰", label: "Doações" },
   { to: "/admin/recomendacoes", icon: "🧠", label: "Recomendações" },
+  { to: "/admin/modelo-ia", icon: "🤖", label: "Modelo de ML" },
   { to: "/admin/parceiros", icon: "🤝", label: "Parceiros" },
 ];
 
@@ -116,7 +117,7 @@ export default function AdminLayout() {
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+    `flex items-center gap-3 px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${
       isActive
         ? "bg-[#F28C28]/15 text-[#F28C28] font-semibold"
         : "text-[#A89BC2] hover:bg-white/5 hover:text-white"
@@ -131,7 +132,7 @@ export default function AdminLayout() {
         }`}
       >
         {/* Logo */}
-        <div className="px-6 py-5 border-b border-white/10">
+        <div className="px-6 py-3 border-b border-white/10">
           <div className="flex items-center gap-2">
             <span className="text-xl">
               <img
@@ -153,7 +154,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-hidden px-3 py-3 space-y-0.5">
+        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -169,10 +170,10 @@ export default function AdminLayout() {
         </nav>
 
         {/* Logout */}
-        <div className="px-3 py-4 border-t border-white/10">
+        <div className="px-3 py-2 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-[#D9534F] hover:bg-[#D9534F]/10 transition-all"
+            className="w-full flex items-center gap-3 px-4 py-1.5 rounded-xl text-sm font-medium text-[#D9534F] hover:bg-[#D9534F]/10 transition-all"
           >
             <span className="text-base w-5 text-center">🚪</span>
             Sair

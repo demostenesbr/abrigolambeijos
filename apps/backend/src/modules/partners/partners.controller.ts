@@ -10,6 +10,7 @@ import {
 import { PartnersService } from './partners.service';
 import { CreatePartnerDto } from './dto/create-partner.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
+import { PartnerApplicationDto } from './dto/partner-application.dto';
 import {
   AdminOnly,
   Public,
@@ -23,6 +24,12 @@ export class PartnersController {
   @Post()
   create(@Body() createPartnerDto: CreatePartnerDto) {
     return this.partnersService.create(createPartnerDto);
+  }
+
+  @Public()
+  @Post('applications')
+  submitApplication(@Body() application: PartnerApplicationDto) {
+    return this.partnersService.submitApplication(application);
   }
 
   @Public()

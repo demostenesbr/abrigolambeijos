@@ -19,7 +19,7 @@ interface Partner {
   country: string;
   description: string;
   location: string;
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "pending" | "rejected";
   createdAt: string;
 }
 
@@ -100,10 +100,10 @@ export default function AdminPartners() {
     }
   };
 
-  const toggleStatus = async (partner: Partner) => {
+  const updateStatus = async (partner: Partner, status: Partner["status"]) => {
     try {
       const updated = await api.patch<Partner>(`/partners/${partner.id}`, {
-        status: partner.status === "active" ? "inactive" : "active",
+        status,
       });
       setPartners((current) => current.map((item) => (item.id === partner.id ? updated : item)));
     } catch (requestError) {
@@ -127,7 +127,7 @@ export default function AdminPartners() {
         <div>
           <h1 className="text-2xl font-bold text-[#263238]">🤝 Parceiros</h1>
           <p className="text-sm text-[#546E7A]">
-            {partners.length} parceiros cadastrados · {partners.filter((p) => p.status === "active").length} ativos
+            {partners.length} registros · {partners.filter((p) => p.status === "active").length} ativos · {partners.filter((p) => p.status === "pending").length} solicitações pendentes
           </p>
         </div>
         <button
@@ -193,11 +193,19 @@ export default function AdminPartners() {
 
               <div className="flex gap-2">
                 <button
-                  onClick={() => void toggleStatus(p)}
+                  onClick={() => void updateStatus(p, p.status === "active" ? "inactive" : "active")}
                   className="flex-1 text-xs font-semibold py-2 rounded-full bg-[#EDE7F6] text-[#4D246A] hover:bg-[#4D246A] hover:text-white transition-colors"
                 >
-                  {p.status === "active" ? "Desativar" : "Ativar"}
+                  {p.status === "pending" ? "Aprovar" : p.status === "active" ? "Desativar" : "Ativar"}
                 </button>
+                {p.status === "pending" && (
+                  <button
+                    onClick={() => void updateStatus(p, "rejected")}
+                    className="flex-1 text-xs font-semibold py-2 rounded-full bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                  >
+                    Recusar
+                  </button>
+                )}
                 <button
                   onClick={() => void removePartner(p.id)}
                   className="flex-1 text-xs font-semibold py-2 rounded-full bg-[#FCE4EC] text-[#D9534F] hover:bg-[#D9534F] hover:text-white transition-colors"
