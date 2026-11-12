@@ -1,683 +1,168 @@
-# Auditoria de Escopo e Integração — Abrigo Lambeijos
+# Auditoria técnica — implementação e integrações
 
-## Objetivo
+Atualizado por leitura da estrutura, Compose/Dockerfiles, controllers, DTOs, serviços, schema Prisma e consumidores UI. Registra implementação observada; nomes de arquivos não provam funcionalidade.
 
-Analise o repositório atual do Abrigo Lambeijos e compare o escopo arquitetural/funcional definido com o que está realmente implementado.
+## A. Resumo executivo
 
-Audite especialmente a integração entre:
-- `apps/frontend` — Next.js + React + TypeScript
-- `apps/admin` — React + Vite + TypeScript
-- `apps/backend` — NestJS + Prisma + PostgreSQL
-- `apps/ml` — Python + scikit-learn
+1. Monorepo com site Next.js, Admin React/Vite, API NestJS/Prisma, PostgreSQL e pipeline Python ML.
+2. Compose define `db`, `backend`, `frontend`, `admin`; ML é subprocesso da API, não um container/serviço HTTP separado.
+3. Backend expõe CRUD de usuários, pets, adotantes, adoções, pedidos, resgates, doações, recomendações e parceiros, mais stats e Swagger `/api/docs`.
+4. Frontend integra auth, perfil, stats, parceiros públicos, candidatura e recomendação; Admin integra CRUD e relatório do modelo. Nenhum frontend acessa DB diretamente.
+5. JWT, bcrypt, validação de status e guards de papel estão implementados no backend. Auto cadastro cria somente `ADOPTER`.
+6. Prisma define nove modelos, mas sem `@relation`/FK explícitas; IDs relacionados são escalares com índices.
+7. Recomendação tem fluxo de UI a persistência: UI → API → CLI Python → score/ranking → tabela `Recommendations`.
+8. Solicitação pública de adoção não fecha: `POST /adoption-requests` é admin-only.
+9. Maior gap acadêmico: target ML sintético e atributos ML dos animais reais parcialmente inferidos; métricas não medem sucesso real de adoção.
+10. Compose não executa migrations; inicialização limpa precisa de `prisma migrate deploy`.
 
-Não altere o código durante a auditoria. Primeiro produza diagnóstico. Não assuma que uma funcionalidade existe apenas porque há uma pasta, arquivo, rota ou componente com nome correspondente.
-
----
-
-# 1. Escopo de referência
-
-O Abrigo Lambeijos é uma plataforma digital para proteção animal com:
-- adoção;
-- animais perdidos;
-- animais encontrados;
-- resgates;
-- doações;
-- parceiros;
-- autenticação de usuários;
-- solicitações de adoção;
-- recomendação de animais baseada em Machine Learning.
-
-O núcleo acadêmico/tecnológico é o mecanismo de recomendação/classificação baseado em ML.
-
-LLM é opcional e complementar. Não deve substituir o ML desenvolvido e avaliado pelo projeto.
-
-Arquitetura desejada:
+## B. Mapa do projeto encontrado
 
 ```text
-Browser
-  |
-  +-------------------+
-  |                   |
-Frontend            Admin
-Next.js             React/Vite
-  |                   |
-  +---------+---------+
-            |
-          Backend
-          NestJS
-            |
-       +----+----+
-       |         |
- PostgreSQL     ML
-               Python
+apps/
+├── frontend/  # Next App Router; app/<rotas>, components, pages, services, hooks
+├── admin/     # React/Vite; src/pages, components, hooks, routes, services,
+│              # types, utils, layouts, contexts, workers
+├── backend/   # Nest; src/modules, src/common; prisma/schema, migrations, seed
+└── ml/        # datasets/{raw,processed,external}, notebooks,
+               # src/{config,data,features,models,training,evaluation,interference},
+               # models/animal-recommender, artfacts/reports
 ```
 
-Se existir LLM:
+- Admin `src/pages`: dashboard, perfil, pets, adotantes, solicitações, adoções, resgates, doações, recomendações, modelo ML, parceiros. `src/services`: cliente API e serviços `pets`, `users`, `adopters`, `adoptions`, `adoption-requests`, `rescues`, `donations`, `partners`, `recommendation`, auth.
+- Frontend App Router: `/`, `/animais`, `/adotar`, `/recomendacao`, `/perdidos`, `/resgastes`, `/parceiros`, `/doacoes`, `/sobre`, `/contato`, `/cadastro`, `/entrar`, `/perfil`, `/esqueci-senha`, `/redefinicao-senha`, `/politica-de-privacidade`, `/termos-de-uso`. Componentes de encontrados existem em `app/pages/found`, sem rota `/encontrados` encontrada.
+- Backend `src/modules`: `auth`, `users`, `pets`, `adopters`, `adoptions`, `adoption-requests`, `rescues`, `donations`, `recommendations`, `partners`, `stats`, `ai`; `ai` não é importado pelo `AppModule`.
+- Portas: frontend 3000, API 3001, admin 5173, PostgreSQL 5432. Volume Postgres: `postgres_data`.
 
-```text
-Backend
-  |---- ML
-  |
-  +---- LLM (complementar)
-```
+## C. Escopo × implementação
 
-O `ml` não precisa ser um microserviço HTTP. Pode ser um ambiente Python para exploração, preprocessing, treinamento, avaliação e inferência.
-
-Evitar overengineering: não introduzir microservices, Kubernetes, Terraform, Kafka/RabbitMQ, vector DB, GPU ou outros componentes sem necessidade real.
-
----
-
-# 2. Stack esperada
-
-## Frontend
-- Next.js
-- React
-- TypeScript
-- App Router
-
-Páginas esperadas:
-```text
-/
-/animais
-/recomendacao
-/adocao
-/perdidos
-/encontrados
-/resgates
-/parceiros
-/ajude
-/sobre
-/contato
-/cadastro
-/entrar
-```
-
-Menu:
-- Início
-- Adote
-- Encontre seu companheiro
-- Perdidos
-- Encontrados
-- Resgates
-- Parceiros
-- Ajude
-- Sobre
-- Contato
-
-Verificar `NavMenu.tsx`, layout global, Header, Footer, Mobile Menu, responsividade, API, loading/error e proteção de rotas.
-
-## Admin
-React + Vite + TypeScript.
-
-Deve administrar:
-- usuários;
-- animais;
-- adoções;
-- solicitações;
-- resgates;
-- doações;
-- parceiros;
-- recomendações.
-
-O Admin deve consumir o Backend e não acessar PostgreSQL diretamente.
-
-## Backend
-NestJS + TypeScript + Prisma + PostgreSQL + REST.
-
-Responsabilidades:
-- autenticação;
-- autorização/RBAC;
-- regras de negócio;
-- CRUD;
-- validação;
-- persistência;
-- integração com ML;
-- eventual integração complementar com LLM.
-
-## ML
-Python + pandas + scikit-learn.
-
-Esperado:
-```text
-data/
-notebooks/
-src/data/
-src/features/
-src/models/
-src/training/
-src/evaluation/
-src/inference/
-artifacts/models/
-artifacts/reports/
-```
-
----
-
-# 3. Autenticação e RBAC
-
-Perfis esperados:
-
-```text
-ADOPTER
-PROTECTOR
-PARTNER
-ADMIN
-```
-
-ou equivalentes em português.
-
-Adotante:
-- dashboard;
-- perfil;
-- recomendações;
-- favoritos;
-- solicitações.
-
-Protetor:
-- dashboard;
-- perfil;
-- seus animais;
-- cadastro/atualização de animais;
-- solicitações;
-- resgates relacionados.
-
-Parceiro:
-- dashboard;
-- perfil/organização;
-- participações/campanhas.
-
-Administrador:
-- dashboard administrativo;
-- usuários;
-- animais;
-- adoções;
-- solicitações;
-- resgates;
-- doações;
-- parceiros;
-- recomendações;
-- configurações.
-
-Administrador deve poder editar, atualizar, ativar e desativar usuários.
-
-Verifique se a autorização é realmente protegida no Backend. Esconder menu no frontend não é controle de acesso suficiente.
-
-Verifique também `ACTIVE/INACTIVE` e se usuário inativo perde acesso.
-
----
-
-# 4. Modelo de dados
-
-Audite o Prisma schema comparando conceitualmente com:
-
-```text
-Users
-Pets
-Adopters
-Adoptions
-AdoptionRequests
-Rescues
-Donations
-Recommendations
-Partners
-```
-
-Campos importantes:
-
-```text
-Users:
-id, email, name, password, role, status, createdAt, updatedAt
-
-Pets:
-id, name, species, age, size, type, breed, gender,
-description, location, image, createdAt, updatedAt
-
-Adopters:
-id, name, email, phone, createdAt, updatedAt
-
-Adoptions:
-id, adopterId, animalId/petId, adoptionDate, createdAt, updatedAt
-
-AdoptionRequests:
-id, adopterId, animalId/petId, requestDate,
-petName, userName, email, phone, address,
-experience, home, status, createdAt, updatedAt
-
-Rescues:
-id, name, location, createdAt, updatedAt
-
-Donations:
-id, donorName, amount, createdAt, updatedAt
-
-Recommendations:
-id, adopterId, animalId/petId,
-recommendationText, createdAt, updatedAt
-
-Partners:
-id, name, type, contact, email, phone,
-address, city, state, country, description,
-location, createdAt, updatedAt
-```
-
-Não altere nomes automaticamente. Registre diferenças.
-
-Verifique relações Prisma explícitas.
-
----
-
-# 5. Machine Learning
-
-Audite:
-
-1. carregamento de dados;
-2. limpeza;
-3. normalização;
-4. encoding;
-5. feature engineering;
-6. train/test split;
-7. treinamento;
-8. avaliação;
-9. comparação de modelos;
-10. persistência do modelo;
-11. inferência;
-12. integração com Backend.
-
-Modelos candidatos:
-- Decision Tree;
-- Random Forest;
-- Logistic Regression;
-- KNN.
-
-Não assuma que todos foram implementados.
-
-Métricas:
-- accuracy;
-- precision;
-- recall;
-- F1;
-- confusion matrix;
-- métricas de recomendação, quando aplicáveis.
-
-Detecte:
-- data leakage;
-- overfitting;
-- dataset pequeno;
-- classes desbalanceadas;
-- ausência de baseline;
-- ausência de validação;
-- labels frágeis.
-
----
-
-# 6. Datasets
-
-## pets.csv
-
-Esperado aproximadamente:
-
-```text
-id,name,species,age,size,type,breed,gender,location,
-energy_level,temperament,sociability,
-children_compatibility,dogs_compatibility,cats_compatibility,
-exercise_need,special_needs,vaccinated,neutered,trained,
-apartment_adaptability,description
-```
-
-Verifique:
-- existência;
-- quantidade de registros;
-- colunas;
-- valores ausentes;
-- duplicidades;
-- inconsistências;
-- compatibilidade com `Pets`.
-
-Não usar `ip_address`, `createdAt` ou `updatedAt` como features de ML.
-
-## pets_processed.csv
-
-Deve representar os animais após limpeza, encoding e feature engineering.
-
-## compatibility_dataset.csv
-
-Esperado como pares adotante + pet:
-
-```text
-adopter_id
-pet_id
-home_type
-has_yard
-has_children
-children_age_group
-has_other_pets
-other_pets_type
-dog_experience
-available_time
-activity_level
-preferred_size
-preferred_age
-pet_age
-pet_energy_level
-pet_temperament
-pet_sociability
-children_compatibility
-dogs_compatibility
-cats_compatibility
-exercise_need
-apartment_adaptability
-compatibility
-```
-
-Target:
-```text
-compatibility = 0 ou 1
-```
-
-Audite criticamente como `compatibility` foi produzido.
-
-Se não houver:
-- dados reais de adoção;
-- avaliação de especialistas;
-- regra documentada;
-- questionário estruturado;
-- heurística justificável;
-
-classifique como GAP CRÍTICO para o TCC.
-
-Não considere labels aleatórios como metodologia adequada.
-
----
-
-# 7. Fluxo de recomendação
-
-Verifique se existe algo equivalente a:
-
-```text
-Frontend
-  ↓
-Formulário do adotante
-  ↓
-Backend
-  ↓
-validação
-  ↓
-Recommendation Module
-  ↓
-ML inference
-  ↓
-compatibility score
-  ↓
-ranking dos Pets
-  ↓
-Frontend
-```
-
-Identifique:
-- endpoint;
-- DTO;
-- validação;
-- chamada do modelo;
-- tratamento de erros;
-- score;
-- ranking;
-- explicação;
-- persistência em `Recommendations`, se houver.
-
----
-
-# 8. LLM
-
-Se existir integração, identifique:
-- provedor;
-- modelo;
-- finalidade;
-- prompts;
-- localização da integração;
-- tratamento de erros;
-- custos.
-
-Classifique como:
-- CORE ML; ou
-- COMPLEMENTAR.
-
-A classificação esperada é:
-
-```text
-ML = núcleo acadêmico
-LLM = opcional/complementar
-```
-
-Exemplo:
-
-```text
-"Quero um cachorro tranquilo para apartamento."
-             ↓
-           LLM
-             ↓
-parâmetros estruturados
-             ↓
-          Backend
-             ↓
-       ML Recommendation
-             ↓
-      ranking de animais
-```
-
-O LLM não deve substituir o ML.
-
----
-
-# 9. Integração entre serviços
-
-Mapeie o fluxo real.
-
-Esperado:
-
-```text
-Frontend --HTTP/REST--> Backend --Prisma--> PostgreSQL
-Admin    --HTTP/REST--> Backend
-Backend  -------------> ML
-Backend  -------------> LLM (se existir)
-```
-
-O Frontend e o Admin não devem acessar PostgreSQL diretamente.
-
-Para cada integração, informe:
-- origem;
-- destino;
-- tecnologia;
-- endpoint/interface;
-- arquivo onde ocorre;
-- estado.
-
-Estados:
-```text
-FUNCIONAL
-PARCIAL
-AUSENTE
-MAL DEFINIDA
-```
-
----
-
-# 10. Autenticação
-
-Verifique:
-- cadastro;
-- login;
-- hash de senha;
-- JWT ou equivalente;
-- refresh token, se usado;
-- guards;
-- roles guard;
-- middleware;
-- proteção de rotas;
-- logout;
-- expiração;
-- usuário desativado.
-
-O Backend deve ser a fonte de verdade para autorização.
-
----
-
-# 11. Docker
-
-Verifique:
-- docker-compose;
-- Dockerfiles;
-- variáveis de ambiente;
-- portas;
-- dependências;
-- ordem de inicialização;
-- health checks;
-- comunicação entre containers;
-- persistência PostgreSQL.
-
-Determine quais componentes realmente precisam de containers separados.
-
----
-
-# 12. Inconsistências a procurar
-
-Procure especificamente:
-- frontend acessando banco diretamente;
-- admin acessando banco diretamente;
-- regras de negócio duplicadas;
-- autenticação duplicada;
-- roles apenas no frontend;
-- secrets hardcoded;
-- URLs hardcoded;
-- CORS incorreto;
-- imports quebrados;
-- dependências sem uso;
-- código morto;
-- módulos sem integração;
-- endpoints sem consumidor;
-- consumidores sem endpoint;
-- schemas divergentes;
-- `Pet` versus `Animal`;
-- `animalId` versus `petId`;
-- divergência Prisma × CSV;
-- divergência frontend × DTO;
-- divergência ML features × banco.
-
----
-
-# 13. Tabela obrigatória
-
-Produza:
+Status: IMPLEMENTADO, PARCIAL, AUSENTE, INCONSISTENTE, NÃO FOI POSSÍVEL VERIFICAR.
 
 | Área | Escopo esperado | Encontrado | Status | Evidência | Gap |
 |---|---|---|---|---|---|
-| Frontend | Next.js/React | | | | |
-| Admin | React/Vite | | | | |
-| Backend | NestJS | | | | |
-| Prisma | PostgreSQL | | | | |
-| Auth | RBAC | | | | |
-| ML | Python/scikit-learn | | | | |
-| Dataset | pets.csv | | | | |
-| Recommendation | ML inference | | | | |
-| LLM | complementar | | | | |
-| Integração | API | | | | |
-| Docker | integração local | | | | |
+| Frontend | Next/React, páginas e integração API | Next 16 App Router; páginas públicas e serviços HTTP | PARCIAL | `apps/frontend/app`, `app/services` | UI perdido/resgate sem módulo equivalente na API; encontrados sem rota; pedido de adoção sem escrita pública |
+| Admin | React/Vite e CRUD administrativo | Vite/React; páginas e serviços de domínios administráveis | IMPLEMENTADO | `apps/admin/src/pages`, `services`, `routes` | CRUD de usuários existe parcialmente no código, mas rota de gestão de usuários não está no router atual |
+| Backend | REST, validação, regras, módulos | Nest 11, módulos registrados, DTO validation, CORS, Swagger | IMPLEMENTADO | `apps/backend/src/app.module.ts`, `main.ts` | `ai` não registrado; módulo lost/found não localizado |
+| Prisma/DB | PostgreSQL e dados relacionais | PostgreSQL 16; Prisma adapter-pg; nove modelos | PARCIAL | `prisma/schema.prisma`, `PrismaService` | Sem `@relation`/FK; Compose não aplica migrations; deps MariaDB extras |
+| Auth | JWT, RBAC, ativo/inativo | bcrypt, JWT, guards, papel/status reconsultados no banco | IMPLEMENTADO | auth service e guards | Sem refresh token; logout apenas local; telas reset sem API localizada |
+| ML | preprocessing, treino, avaliação, inferência | pipeline Python e classificador chamado pela API | IMPLEMENTADO | `apps/ml/src`, `MlBridgeService` | Labels sintéticos e campos reais inferidos limitam validade externa |
+| Dataset | pares compatibilidade e catálogo | CSV sintético, CSV real exportado e processado | PARCIAL | `apps/ml/README.md`, `datasets` | Target por heurística, poucos dados reais e atributos inferidos |
+| Recommendation | perfil→score→ranking | `/recommendations/me` executa modelo e salva recomendações | IMPLEMENTADO | controller, DTO, service, bridge, UI | Perfil chega do browser a cada requisição, sem perfil estruturado salvo |
+| LLM | complementar ao ML | nenhum provedor/chamada localizada; `ai.service.ts` não registrado | AUSENTE | AppModule e módulos | Não é integração existente |
+| Integração | browser→API→DB; API→ML | fetch HTTP, Prisma pg, subprocess Python | IMPLEMENTADO | clientes frontend/admin, Prisma, bridge | pedido de adoção não completa fluxo |
+| Docker | serviços locais integrados | db/backend/frontend/admin, healthcheck DB e volume | PARCIAL | Compose e Dockerfiles | migrations não automáticas; sem healthcheck app; defaults não adequados para produção |
 
-Status permitidos:
-```text
-IMPLEMENTADO
-PARCIAL
-AUSENTE
-INCONSISTENTE
-NÃO FOI POSSÍVEL VERIFICAR
-```
+## D. Integração e endpoints
 
----
+### Matriz
 
-# 14. Matriz de integração
-
-Produza:
-
-| Origem | Destino | Tecnologia | Endpoint/Interface | Arquivo | Estado |
+| Origem | Destino | Tecnologia | Endpoint/interface | Arquivo | Estado |
 |---|---|---|---|---|---|
-| Frontend | Backend | HTTP/REST | | | |
-| Admin | Backend | HTTP/REST | | | |
-| Backend | PostgreSQL | Prisma | | | |
-| Backend | ML | local/import/process | | | |
-| Backend | LLM | API | | | |
+| Frontend | Backend | fetch HTTP/JSON + Bearer | `/auth/*`, `/users/:id`, `/recommendations/me`, `/partners/public`, `/partners/applications`, `/stats`, `/donations/summary` | `frontend/app/services/{api,auth,stats}.ts` e páginas | FUNCIONAL nos fluxos listados |
+| Admin | Backend | fetch HTTP/JSON + Bearer | `/stats/admin`, CRUD admin, `/recommendations/model/report` | `admin/src/services/api.ts`, services/pages | FUNCIONAL nos recursos conectados |
+| Backend | PostgreSQL | Prisma 7 + adapter-pg + pg | `DATABASE_URL` | `backend/src/common/prisma/prisma.service.ts` | FUNCIONAL pela configuração |
+| Backend | ML | subprocess local, JSON stdin/stdout | `python -m src.interference.cli` | `recommendations/ml-bridge.service.ts`, `apps/ml/src/interference/cli.py` | FUNCIONAL, timeout 30s |
+| Backend | LLM | Não localizado | — | `modules/ai/ai.service.ts` não registrado | AUSENTE |
 
----
+### Superfície REST
 
-# 15. Resultado final
+Base URL local `http://localhost:3001`; OpenAPI UI `/api/docs`. Acesso admin requer JWT Bearer válido, usuário ativo e papel `ADMIN`, salvo exceções públicas abaixo.
 
-Entregue nesta ordem:
+| Método/rota | Acesso e contrato principal |
+|---|---|
+| `GET /` | Público; resposta básica |
+| `POST /auth/register` | Público; `email`, `password` (mín. 8), `name?`, `username?`; cria ADOPTER ativo |
+| `POST /auth/login` | Público; `email`, `password`; token e usuário |
+| `GET /auth/me` | JWT ativo |
+| `/users` GET/POST/DELETE | Admin; lista/cria/exclui; GET/PATCH `:id` para próprio ou admin; só admin muda role/status |
+| `/pets` CRUD | Admin |
+| `/adopters` CRUD | Admin |
+| `/adoptions` CRUD | Admin |
+| `/adoption-requests` CRUD | Admin; não há POST público |
+| `/rescues` CRUD | Admin |
+| `/donations` CRUD | Admin; `GET /donations/summary` público e agregado |
+| `/partners` CRUD | Admin; `GET /partners/public` e `POST /partners/applications` públicos |
+| `GET /stats` | Público, agregado |
+| `GET /stats/admin` | Admin |
+| `/recommendations` CRUD | Admin |
+| `POST /recommendations/generate` | Admin; `adopterId`, profile e `topN?` |
+| `POST /recommendations/me` | Qualquer usuário ativo autenticado; profile e `topN?` 1–20 |
+| `GET /recommendations/model/report` | Admin |
 
-## A. Resumo executivo
-Máximo de 10 pontos:
-- estado atual;
-- partes prontas;
-- partes incompletas;
-- integração existente;
-- maior risco técnico;
-- maior gap acadêmico.
+Perfil de recomendação: `home_type` Apartment/House; booleanos `has_yard`, `has_children`, `has_other_pets`; `children_age_group`; `other_pets_type` CAT/DOG/NONE; `dog_experience` Beginner/Intermediate/Experienced; `available_time` e `activity_level` Low/Medium/High; `preferred_size` Small/Medium/Large; `preferred_age` Filhote/Adulto/Idoso. `/me` retorna `{ adopterId, results: [{ petId, name, species, score }] }` e persiste `Recommendations`.
 
-## B. Mapa do projeto real
-Mostre a estrutura encontrada no repositório.
-
-## C. Escopo × implementação
-Tabela completa.
-
-## D. Integração
-Explique frontend ↔ backend ↔ database ↔ ML ↔ LLM.
+Candidatura de parceiro requer `name`, `type`, `contact`, `email`, `phone`, `address`, `city`, `state`, `country`, `description`; não cria conta. `PaginationQueryDto` oferece `page`, `limit` até 100 e `q`, mas não foi localizado nos controllers CRUD; listagens parecem não paginadas.
 
 ## E. Autenticação/RBAC
-Explique o que realmente está protegido.
+
+Backend é fonte de verdade. Cadastro sempre atribui `ADOPTER` e `ACTIVE`; papel elevado só por operação administrativa. Senha usa bcrypt. JWT contém `sub`; em cada requisição o guard valida token, recarrega usuário e bloqueia `INACTIVE`/`SUSPENDED`. `AdminOnly` exige ADMIN; `Public` abre endpoints explicitamente; `AnyAuthenticated` permite qualquer perfil autenticado (usado em `/recommendations/me`). `/users/:id` aplica self-or-admin e remove role/status do payload de não-admin.
+
+Frontend persiste token em localStorage, limpa em 401 e expira sessão por inatividade local de 30 min. Não foi identificado refresh token ou logout server-side. Páginas de recuperação/redefinição existem, mas endpoints correspondentes não foram localizados.
 
 ## F. Machine Learning
-Explique dataset, preprocessing, features, modelo, treinamento, avaliação, inferência, artefatos e integração.
 
-## G. Gaps
-Classifique:
+Pipeline `apps/ml`: `src/data` (loader, cleaner, geração/exportação), `src/features` (transformação/encoding), `src/models` (Decision Tree, Random Forest, Logistic Regression, KNN), `src/training`, `src/evaluation`, `src/interference` (CLI, predictor, recommender), notebooks, CSVs e artefatos.
+
+O conjunto de pares tem target `compatibility` sintético, calculado por regras. Modelos são comparados por F1 e validação cruzada agrupada por adotante, com baseline majoritário; relatórios têm accuracy, precision, recall, F1 e matriz de confusão. O modelo selecionado e metadados ficam em `models/animal-recommender/`; relatórios em `artfacts/reports/` (grafia literal usada no código). O processo lê pets do banco via payload do bridge e classifica/rankeia por score.
+
+Limitação central: avaliação contra rótulos sintéticos mede reprodução de heurística e não eficácia de adoção real. Atributos dos pets reais que o formulário não coleta são inferidos por regras; recomendações refletem essas suposições.
+
+## G. Schema e campos Prisma
+
+Provider `postgresql`, `relationMode = "prisma"`; nenhum `@relation` explícito foi encontrado. IDs de vínculo não geram FK no schema.
+
+| Modelo | Campos além do `id` |
+|---|---|
+| `Users` | `email` único, `name?`, `username?`, `password`, `role` (`ADOPTER/PROTECTOR/PARTNER/ADMIN`), `status` (`ACTIVE/INACTIVE/SUSPENDED`), timestamps |
+| `Pets` | `animalname`, `rganimal`, `dateentry`, `petphoto?`, `name`, `race`, `gender`, `microchipped`, `microchipnumber?`, `castrated`, `coattypecoloration`, `predominantcoatcolor`, `signsanddistinctive`, `estimatedchronologicalage`, `birthdate`, `size`, `behavioralprofile?`, `healthcondition?`, `redemptioncondition?`, ML `species`, `energyLevel`, `temperament`, `sociability`, `exerciseNeed`, `apartmentAdaptability`, `childrenCompatibility`, `dogsCompatibility`, `catsCompatibility`, timestamps |
+| `Adopters` | `name`, `email` único, `phone?`, timestamps |
+| `Adoptions` | `adopterId`, `animalId`, `adoptionDate`, `status` (string, default `in_progress`), timestamps |
+| `AdoptionRequests` | `adopterId`, `animalId`, `requestDate`, `petName`, `userName`, `email`, `phone`, `address`, `experience`, `home`, `status` (string, default `pending`), timestamps |
+| `Rescues` | `name`, `location`, `status` (string: triage/in_treatment/recovered), timestamps |
+| `Donations` | `donorName`, `amount` Float, `type`, `method`, `plan?`, `status`, timestamps |
+| `Recommendations` | `adopterId`, `animalId`, `recommendationText`, timestamps |
+| `Partners` | `name`, `type`, `contact`, `email`, `phone`, `address`, `city`, `state`, `country`, `description`, `location`, `status`, timestamps |
+
+`animalId` é o nome usado nos vínculos, não `petId`. Status de adoções, pedidos, resgates, doações e parceiros são `String`, não enums Prisma. Campos opcionais/defaults e índices completos estão em `apps/backend/prisma/schema.prisma`.
+
+## H. Gaps priorizados
+
+| Prioridade | Problema | Evidência/impacto |
+|---|---|---|
+| CRÍTICO | Labels ML sintéticos | Não demonstram sucesso real; afetam conclusão acadêmica |
+| ALTO | Pedido público de adoção sem escrita | `POST /adoption-requests` admin-only; fluxo de interesse não fecha |
+| ALTO | Atributos reais inferidos | Scores usam dados não observados diretamente |
+| ALTO | Sem relações/FKs Prisma | Possibilidade de órfãos e integridade dependente da aplicação |
+| MÉDIO | Migrations manuais | Compose inicia banco vazio sem schema |
+| MÉDIO | Reset de senha sem endpoints encontrados | Telas não comprovam fluxo backend |
+| MÉDIO | `ai` não registrado | Nenhuma integração LLM atual |
+| MÉDIO | Perdidos/encontrados ausentes na API | páginas não têm backend de domínio identificado |
+| BAIXO | Dependências MariaDB no package backend | Código Prisma usa PostgreSQL; dependências aparentam obsoletas |
+| BAIXO | Diretório `artfacts` | grafia inconsistente; scripts e relatório dependem do nome atual |
+
+## I. Próximas ações recomendadas
+
+| Ação | Arquivo/módulo | Dependência | Impacto | Prioridade |
+|---|---|---|---|---|
+| Projetar endpoint público seguro para pedido de adoção e conectar formulário | `adoption-requests` controller/DTO/service e frontend | definir identidade/vínculo do adotante | fecha fluxo de adoção | Alta |
+| Coletar/rotular resultados com protocolo de especialistas ou outcomes anonimizados | datasets e gerador ML | consentimento e protocolo de dados | validade do TCC | Crítica |
+| Identificar atributos comportamentais diretamente ou marcar incerteza | coleta real e `real_pets.py` | processo de avaliação animal | melhora rastreabilidade do score | Alta |
+| Definir cardinalidades e adicionar relações/migrations, se regra de domínio confirmar | schema Prisma | revisão de domínio | integridade referencial | Alta |
+| Tornar setup/migrations reproduzível e documentar healthcheck da API | Compose/runbook | estratégia dev/prod | instalações consistentes | Média |
+| Implementar endpoints de recuperação ou adequar telas | auth frontend/backend | mecanismo seguro de email/token | fluxo de conta completo | Média |
+| Remover dependências MariaDB após confirmação | backend package/lock | build e geração Prisma | coerência da stack | Baixa |
+
+## J. Arquitetura e conclusão
+
 ```text
-CRÍTICO
-ALTO
-MÉDIO
-BAIXO
+Browser
+  ├── Next.js :3000 ── HTTP/JSON + JWT ──┐
+  └── Admin Vite :5173 ─ HTTP/JSON + JWT ┤
+                                         v
+                               NestJS API :3001
+                                 ├── Prisma adapter-pg ── PostgreSQL :5432
+                                 └── subprocess Python ── apps/ml CLI
+
+LLM: não integrado ao AppModule nem ao fluxo de recomendação encontrado.
 ```
 
-## H. Próximas ações
-Para cada ação:
-- problema;
-- arquivo/módulo;
-- alteração sugerida;
-- dependências;
-- impacto;
-- prioridade.
-
-## I. Arquitetura recomendada
-Mostre diagrama textual.
-
-## J. Conclusão
-Responda:
-"Com base exclusivamente no código encontrado, o projeto atual consegue sustentar o escopo definido?"
-
-Explique quais partes sustentam e quais precisam de implementação.
-
----
-
-# Regra fundamental
-
-Não invente implementação.
-
-Se não houver evidência, escreva:
-
-`NÃO FOI POSSÍVEL VERIFICAR`
-
-Diferencie sempre:
-
-```text
-ESCOPO DEFINIDO
-IMPLEMENTAÇÃO REAL
-INFERÊNCIA
-RECOMENDAÇÃO
-```
-
-Não trate recomendação arquitetural como funcionalidade existente.
+**Com base exclusivamente no código encontrado, o projeto sustenta parte relevante, mas não todo o escopo definido.** Site, Admin, API, autenticação, persistência configurada, Docker e recomendação ponta a ponta existem no código. Faltam fluxo público de pedido de adoção, backend para perdidos/encontrados e validação empírica do ML em dados/outcomes reais. A existência de telas de senha não comprova recuperação funcional. Esta auditoria documenta configuração/código e não afirma que os containers estavam ativos no momento da leitura.

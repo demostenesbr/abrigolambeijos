@@ -1,105 +1,91 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend — API Abrigo Lambeijos
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST NestJS 11 + TypeScript, Prisma 7 e PostgreSQL 16. Raiz `/`; Swagger/OpenAPI em `/api/docs`. A validação global rejeita propriedades fora dos DTOs (`whitelist`, `forbidNonWhitelisted`) e converte tipos. CORS vem de `CORS_ORIGINS`.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Módulos e estrutura
 
-## Description
+`src/modules/`: `auth`, `users`, `pets`, `adopters`, `adoptions`, `adoption-requests`, `rescues`, `donations`, `recommendations`, `partners`, `stats` e `ai`. `src/common/`: Prisma, JWT, guards, decorators, DTO de paginação e filtro de erros Prisma. `prisma/`: schema, migrations, configuração, seeds e importador de pets reais.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+O módulo `ai` está no disco, mas não consta do `AppModule`; nenhuma integração LLM foi encontrada. Prisma conecta via `PrismaPg` (`@prisma/adapter-pg`) e pool `pg`.
 
-## Project setup
+## Endpoints
+
+Todos usam JSON. Recursos marcados admin exigem JWT Bearer, usuário `ACTIVE` e papel `ADMIN`.
+
+| Método | Rota | Acesso/uso |
+|---|---|---|
+| GET | `/` | Público; verificação básica |
+| POST | `/auth/register` | Público; registra adotante |
+| POST | `/auth/login` | Público; retorna access token |
+| GET | `/auth/me` | JWT ativo |
+| GET, POST | `/users` | Admin; listar/criar |
+| GET, PATCH | `/users/:id` | Próprio usuário ou admin; só admin altera papel/status |
+| DELETE | `/users/:id` | Admin |
+| GET, POST | `/pets` | Admin; listar/criar |
+| GET, PATCH, DELETE | `/pets/:id` | Admin |
+| GET, POST | `/adopters` | Admin; listar/criar |
+| GET, PATCH, DELETE | `/adopters/:id` | Admin |
+| GET, POST | `/adoptions` | Admin; listar/criar |
+| GET, PATCH, DELETE | `/adoptions/:id` | Admin |
+| GET, POST | `/adoption-requests` | Admin; listar/criar |
+| GET, PATCH, DELETE | `/adoption-requests/:id` | Admin |
+| GET, POST | `/rescues` | Admin; listar/criar |
+| GET, PATCH, DELETE | `/rescues/:id` | Admin |
+| GET, POST | `/donations` | Admin; listar/criar |
+| GET, PATCH, DELETE | `/donations/:id` | Admin |
+| GET | `/donations/summary` | Público; resumo anônimo agregado |
+| GET, POST | `/partners` | Admin; listar/criar |
+| GET, PATCH, DELETE | `/partners/:id` | Admin |
+| POST | `/partners/applications` | Público; enviar candidatura de parceiro |
+| GET | `/partners/public` | Público; parceiros ativos |
+| GET | `/stats` | Público; estatísticas agregadas |
+| GET | `/stats/admin` | Admin; indicadores do painel |
+| POST | `/recommendations/me` | Qualquer JWT ativo; ranking do próprio usuário |
+| POST | `/recommendations/generate` | Admin; ranking por `adopterId` |
+| GET, POST | `/recommendations` | Admin; listar/criar registros |
+| GET | `/recommendations/model/report` | Admin; relatório do modelo/datasets |
+| GET, PATCH, DELETE | `/recommendations/:id` | Admin |
+
+**Gap do fluxo de adoção:** `POST /adoption-requests` é protegido para admin; não há endpoint público de escrita no controller encontrado.
+
+### DTOs e contratos notáveis
+
+- `POST /auth/register`: `{ email, password, name?, username? }`; senha mínima 8. Autocadastro sempre cria `ADOPTER` ativo. Bcrypt para hash; JWT assinado com `JWT_SECRET`.
+- `POST /auth/login`: `{ email, password }`; usuário não ativo é recusado.
+- `POST /recommendations/me`: `{ profile, topN? }`; `topN` inteiro 1–20. `profile` contém `home_type` (`Apartment|House`), `has_yard`, `has_children`, `children_age_group`, `has_other_pets`, `other_pets_type` (`CAT|DOG|NONE`), `dog_experience` (`Beginner|Intermediate|Experienced`), `available_time`, `activity_level` (`Low|Medium|High`), `preferred_size` (`Small|Medium|Large`) e `preferred_age` (`Filhote|Adulto|Idoso`). Resposta `{ adopterId, results: [{ petId, name, species, score }] }`; persiste os resultados.
+- `POST /partners/applications`: `name`, `type`, `contact`, `email`, `phone`, `address`, `city`, `state`, `country`, `description`; candidatura não cria conta.
+- `PaginationQueryDto` define `page`, `limit` (máx. 100), `q`, mas não foi localizado nos controllers CRUD; listagens atuais parecem não paginadas.
+
+## Schema Prisma
+
+Datasource PostgreSQL, `relationMode = "prisma"`. Não há `@relation` declarado: os campos ID abaixo não criam chaves estrangeiras explícitas no schema.
+
+| Modelo | Campos além do `id` |
+|---|---|
+| `Users` | `email` único, `name?`, `username?`, `password`, `role` (`ADOPTER/PROTECTOR/PARTNER/ADMIN`), `status` (`ACTIVE/INACTIVE/SUSPENDED`), `createdAt`, `updatedAt` |
+| `Pets` | `animalname`, `rganimal`, `dateentry`, `petphoto?`, `name`, `race`, `gender`, `microchipped`, `microchipnumber?`, `castrated`, `coattypecoloration`, `predominantcoatcolor`, `signsanddistinctive`, `estimatedchronologicalage`, `birthdate`, `size`, `behavioralprofile?`, `healthcondition?`, `redemptioncondition?`, `species`, `energyLevel`, `temperament`, `sociability`, `exerciseNeed`, `apartmentAdaptability`, `childrenCompatibility`, `dogsCompatibility`, `catsCompatibility`, timestamps |
+| `Adopters` | `name`, `email` único, `phone?`, timestamps |
+| `Adoptions` | `adopterId`, `animalId`, `adoptionDate`, `status` (`String`, padrão `in_progress`), timestamps |
+| `AdoptionRequests` | `adopterId`, `animalId`, `requestDate`, `petName`, `userName`, `email`, `phone`, `address`, `experience`, `home`, `status` (`String`, padrão `pending`), timestamps |
+| `Rescues` | `name`, `location`, `status` (`String`: triage/in_treatment/recovered), timestamps |
+| `Donations` | `donorName`, `amount` (Float), `type`, `method`, `plan?`, `status`, timestamps |
+| `Recommendations` | `adopterId`, `animalId`, `recommendationText`, timestamps |
+| `Partners` | `name`, `type`, `contact`, `email`, `phone`, `address`, `city`, `state`, `country`, `description`, `location`, `status`, timestamps |
+
+Os campos `animalId` não se chamam `petId`; vários status são strings em vez de enums Prisma. Ver `prisma/schema.prisma` para defaults/índices completos.
+
+## Integração ML
+
+`RecommendationsService` lê pets do banco e mapeia para Python: `id`, `name`, `species`, `age`, `energy_level`, `temperament`, `sociability`, `exercise_need`, `apartment_adaptability`, `children_compatibility`, `dogs_compatibility`, `cats_compatibility`. `MlBridgeService` executa `python -m src.interference.cli` em subprocesso; JSON via stdin/stdout; timeout 30s.
+
+Por padrão `ML_APP_PATH` resolve para `../ml` relativo ao processo e o executável é `apps/ml/.venv/Scripts/python.exe` no Windows ou `.venv/bin/python` em POSIX. Docker usa `/usr/src/ml` e `/opt/ml-venv/bin/python`.
+
+## Comandos e ambiente
 
 ```bash
-$ npm install
+npm run start:dev
+npm run build
+npx prisma migrate deploy
 ```
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-# Solicitações de parceria
-
-O formulário público de cadastro envia solicitações para
-`POST /partners/applications`. Elas são gravadas como `pending`, sem criar conta
-ou atribuir permissões. No painel administrativo de parceiros, um administrador
-pode aprovar (`active`) ou recusar (`rejected`) a solicitação. Apenas parceiros
-ativos são exibidos publicamente.
+Variáveis: `DATABASE_URL`, `PORT`, `CORS_ORIGINS`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `DB_POOL_MAX`, `ML_APP_PATH`, `ML_PYTHON_EXECUTABLE`. Compose não aplica migrations automaticamente. O pacote declara adapter/pacote MariaDB junto ao adapter PostgreSQL usado pelo código; MariaDB parece dependência obsoleta.

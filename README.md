@@ -1,180 +1,48 @@
 # Abrigo Lambeijos
 
-Um projeto dedicado ao resgate de animais, animais perdidos e encontrados, e à saúde animal.
+Monorepo de proteção animal com três aplicações web, API REST, PostgreSQL e pipeline Python de Machine Learning.
 
-# NestJs com MySQL
+## Serviços e portas
 
-[https://docs.nestjs.com/techniques/database] - https://docs.nestjs.com/techniques/database
+| Serviço | Diretório | Tecnologia | Acesso local |
+|---|---|---|---|
+| Site público | `apps/frontend` | Next.js 16, React 19, TypeScript | http://localhost:3000 |
+| Painel administrativo | `apps/admin` | React 19, Vite 8, TypeScript | http://localhost:5173/admin/home |
+| API | `apps/backend` | NestJS 11, Prisma 7, PostgreSQL | http://localhost:3001; Swagger em `/api/docs` |
+| Banco | serviço `db` | PostgreSQL 16 | `localhost:5432` |
+| ML | `apps/ml` | Python, pandas, scikit-learn | CLI chamado pela API via subprocesso |
 
-# Ecossistema de Desenvolvimento - Abrigo Lambeijos com CMS Modular
+O Compose inicia `db`, `backend`, `frontend` e `admin`. ML não é container independente: o backend monta `apps/ml` e invoca o Python. Consulte [README.DOCKER.md](README.DOCKER.md) e [a auditoria de integração](apps/integration_abrigolambeijos.md).
 
-Este repositório utiliza a arquitetura de **Monorepo** com **NPM/Yarn Workspaces** para gerenciar de forma centralizada as aplicações de Frontend, Backend e Painel Administrativo (Admin).
-
----
-
-## 🏗️ Arquitetura do Projeto
-
-A estrutura física adota o padrão onde todas as aplicações executáveis e independentes residem estritamente dentro do diretório `apps/`.
+## Estrutura
 
 ```text
-abrigolambeijos/
-│
-├── package.json
-├── README.md
-├── .env.example
-├── docker-compose.yml
-│
-└── apps/
-    │
-    ├── backend/
-    │   ├── NestJS
-    │   ├── Prisma
-    │   ├── PostgreSQL
-    │   │
-    │   └── src/
-    │       └── modules/
-    │           ├── auth/
-    │           ├── users/
-    │           ├── pets/
-    │           ├── adopters/
-    │           ├── adoptions/
-    │           ├── rescues/
-    │           ├── donations/
-    │           └── recommendations/
-    │           └── ai/ (optional)
-    │               ├── llm/
-    │               ├── prompts/
-    │               ├── tools/
-    │               └── ai.service.ts
-    │
-    ├── frontend/
-    │   └── Next.js + React
-    |   |
-    |   └── app/
-    |       └── adotar (page)
-    |       └── animais (page)
-    |       └── assets
-    |       └── cadastro (page)
-    |       └── components
-    |       └── contato (page)
-    |       └── doacoes (page)
-    |       └── entrar (page)
-    |       └── hooks
-    |       └── lib
-    |       └── pages
-    |       └── parceiros (page)
-    |       └── perdidos (page)
-    |       └── privacidade (page)
-    |       └── recomendacao (page)
-    |       └── services
-    |       └── sobre (page)
-    |       └── styles
-    |       └── terms
-    |       └── types
-    │
-    ├── admin/
-    │   |── React + Vite
-    |   |
-    |   └── src/
-    |       └── assets
-    |       └── config
-    |       └── contexts
-    |       └── hooks
-    |       └── layouts
-    |       └── pages
-    |       └── routes
-    |       └── services
-    |       └── styles
-    |       └── types
-    |       └── types
-    |       └── utils 
-    │
-    ├── ml/
-    |   └── .venv (Local Python)
-    |   |   artfacts/
-    |   |       ├── models/
-    |   |       └── reports
-    |   ├── datasets/
-    |   |       |── external
-    |   |       |── processed
-    |   |       └── raw
-    |── models/
-    |       └── animal-recommender/
-    │
-    |── notebooks/
-    │
-    └── src/
-        └── config
-        └── data
-        └── evaluation
-        └── features
-        └── models
-        └── training
+apps/
+├── admin/       # React/Vite: páginas, serviços HTTP, hooks, componentes
+├── backend/     # NestJS: módulos REST, Prisma, migrations e seeds
+├── frontend/    # Next App Router: páginas, serviços, componentes e hooks
+└── ml/          # datasets, notebooks, src/data, features, models, training,
+                 # evaluation, inference CLI e artefatos
 ```
 
----
+## Executar
 
-## 🛠️ Tecnologias Utilizadas
-
-### Backend (`apps/backend`)
-
-- **NestJS:** Framework Node.js robusto, tipado e escalável para arquitetura de microsserviços ou monólitos modulares.
-- **Prisma ORM:** Abstração e manipulação de banco de dados com total suporte a TypeScript na versão estável 7.10.0. Até o dia 31/08/2026, o upgrade para versão 8.0 ainda não recomendada, pois trata-se de uma versão sem o suporte ao MySQL.
-
-### Interfaces (`apps/frontend` & `apps/admin`)
-
-- **React:** Biblioteca base para a construção das interfaces reativas.
-- **Vite:** Ferramenta de build rápida e leve, ideal para o ecossistema React (especialmente para o painel Admin).
-- **Next.js (Opcional para o Frontend):** Recomendado para o site público caso haja necessidade de SEO (indexação em motores de busca).
-
----
-
-## ⚙️ Boas Práticas Implementadas
-
-1. **Separação de Responsabilidades:** O site público (`frontend`) e o gerenciador de conteúdo (`admin`) são projetos React isolados. Se o painel admin falhar, a experiência do cliente final no site não é afetada.
-2. **Autenticação Centralizada e RBAC:** O `admin` consome as rotas do `backend` enviando credenciais. O NestJS valida o acesso e bloqueia rotas sensíveis de edição usando _Guards_ baseados em regras (ex: `role: 'admin'`).
-3. **Compartilhamento de Tipos:** Por estarem no mesmo Monorepo, as interfaces TypeScript e entidades do banco geradas pelo Prisma podem ser facilmente compartilhadas entre o backend e os frontends.
-4. **Builds Independentes:** Cada aplicação gera seu próprio pacote de deploy, otimizando o consumo de recursos e permitindo pipelines de CI/CD específicas.
-
----
-
-## 🚀 Como Iniciar o Workspace
-
-### Configuração do `package.json` Raiz
-
-Para que o gerenciador de pacotes reconheça a estrutura, o arquivo `package.json` na raiz do projeto deve conter:
-
-```json
-{
-  "name": "abrigolambeijos",
-  "private": true,
-  "workspaces": ["apps/*"]
-}
-```
-
-### Comandos Iniciais
-
-Instale o `node_modules` em cada dependência de forma independente pelo comando:
+Requisitos: Docker Desktop/Compose e Node.js compatível com os Dockerfiles (Node 22). Para desenvolvimento local, instale dependências na raiz com `npm install`.
 
 ```bash
-npm install
-```
+# Tudo em Docker
+npm run docker:up
+# Logs e encerramento
+docker compose logs -f backend frontend admin
+npm run docker:down
 
-Para rodar um app específico a partir da raiz:
-`admin`
-
-```bash
+# Node local e banco no Docker
+npm run db:up
 npm run dev
 ```
 
-`backend`
+O Compose não aplica migrations automaticamente; veja [README.DOCKER.md](README.DOCKER.md) antes do primeiro uso.
 
-```bash
-npm run dev
-```
+## Configuração
 
-`frontend`
-
-```bash
-npm run dev
-```
+Configure `.env` a partir de `.env.example`: `DATABASE_URL`, `POSTGRES_*`, `PORT`, `CORS_ORIGINS`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `NEXT_PUBLIC_API_URL`, `VITE_API_URL`, `DB_POOL_MAX`. Integração Python também aceita `ML_APP_PATH` e `ML_PYTHON_EXECUTABLE`. URLs `NEXT_PUBLIC_API_URL` e `VITE_API_URL` precisam ser acessíveis pelo navegador (padrão `http://localhost:3001`).
