@@ -24,8 +24,8 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       status = HttpStatus.CONFLICT;
       message = 'Já existe um registro com esses dados.';
     } else if (code === 'P2003') {
-      status = HttpStatus.BAD_REQUEST;
-      message = 'Registro relacionado não encontrado.';
+      status = HttpStatus.CONFLICT;
+      message = 'A operação viola uma relação de integridade entre registros.';
     } else if (code === 'P2025') {
       status = HttpStatus.NOT_FOUND;
       message = 'Registro não encontrado.';

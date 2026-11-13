@@ -5,6 +5,7 @@ export type AnimalSize = "pequeno" | "medio" | "grande";
 
 export interface Animal {
   id: string;
+  rganimal?: string;
   name: string;
   breed: string;
   size: AnimalSize;
@@ -24,6 +25,7 @@ export interface Animal {
 
 interface RealPet {
   id: string;
+  rganimal: string;
   photo: string | null;
   breed: string;
   gender: string;
@@ -42,6 +44,7 @@ interface RealPet {
 // Todos os cães do cadastro estão abrigados e disponíveis para adoção.
 const adoptableAnimals: Animal[] = (realPets as RealPet[]).map((pet) => ({
   id: pet.id,
+  rganimal: pet.rganimal,
   name: `Cão ${pet.color.toLowerCase()}`,
   breed: pet.breed,
   size: pet.size,

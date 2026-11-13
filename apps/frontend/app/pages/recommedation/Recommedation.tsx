@@ -120,9 +120,12 @@ export default function Recommendation() {
               O próximo amor da sua vida pode estar esperando por você.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-[#E8DDF0] sm:text-lg">
-              Conte um pouco sobre a sua rotina. Cruzamos o seu perfil com as
-              necessidades dos nossos animais para encontrar combinações mais
-              felizes e duradouras.
+              Conte um pouco sobre a sua rotina. O modelo ordena os animais
+              conforme a compatibilidade estimada com suas respostas.
+            </p>
+            <p className="mt-3 max-w-2xl rounded-xl border border-amber-200 bg-amber-50/10 p-3 text-sm leading-6 text-[#FBE7C6]">
+              O modelo foi avaliado com exemplos sintéticos e regras heurísticas.
+              O percentual é experimental e não representa a probabilidade de uma adoção dar certo.
             </p>
           </div>
           <div className="mt-8 flex flex-wrap gap-3 text-sm text-[#E8DDF0]">
@@ -303,7 +306,7 @@ export default function Recommendation() {
                       </div>
                       <div className="text-right">
                         <strong className="block text-2xl font-black text-[#4D246A]">{scoreLabel(result.score)}</strong>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#9A887D]">compatível</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#9A887D]">compatibilidade estimada</span>
                       </div>
                     </li>
                   );

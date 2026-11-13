@@ -115,8 +115,8 @@ export default function AdminAIModel() {
           </section>
 
           <section aria-labelledby="metrics-title">
-            <h2 id="metrics-title" className="mb-3 text-lg font-bold text-[#2F2140]">Métricas de desempenho</h2>
-            <p className="mb-3 text-sm text-[#78909C]">Teste separado: {number(report.metadata.test_size)} pares. As métricas usam rótulos sintéticos.</p>
+            <h2 id="metrics-title" className="mb-3 text-lg font-bold text-[#2F2140]">Métricas sobre rótulos sintéticos</h2>
+            <p className="mb-3 text-sm text-[#78909C]">Teste separado: {number(report.metadata.test_size)} pares. Este resultado mede concordância com rótulos heurísticos sintéticos, não taxa de adoção bem-sucedida.</p>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {[
                 { label: "Acurácia", value: report.metrics.accuracy },

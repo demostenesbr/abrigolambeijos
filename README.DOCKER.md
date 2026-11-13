@@ -20,10 +20,12 @@ Os três serviços Node montam seus diretórios e executam `npm install` na inic
 
 ## Banco e migrations
 
-`docker compose up` inicia o PostgreSQL, mas não aplica migrations. Depois que o banco estiver saudável, execute:
+Ao iniciar, `backend` espera o healthcheck do PostgreSQL, executa `npx prisma migrate deploy` e só então inicia a API. Migrations já aplicadas são ignoradas pelo Prisma. Se uma migração detectar referências órfãs ou identificadores duplicados, o backend interrompe o startup com erro e a base precisa ser corrigida antes de tentar novamente.
+
+Na execução local do backend fora do Compose, aplique migrations manualmente dentro de `apps/backend`:
 
 ```bash
-docker compose exec backend npx prisma migrate deploy
+npx prisma migrate deploy
 ```
 
 Para criar migrations em desenvolvimento, use Prisma dentro de `apps/backend` e versione os arquivos gerados. A URL dentro do Compose usa hostname `db`; com backend local fora do Compose, use `localhost`.

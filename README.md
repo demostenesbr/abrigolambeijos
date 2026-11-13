@@ -41,7 +41,7 @@ npm run db:up
 npm run dev
 ```
 
-O Compose não aplica migrations automaticamente; veja [README.DOCKER.md](README.DOCKER.md) antes do primeiro uso.
+O serviço `backend` aplica as migrations pendentes (`prisma migrate deploy`) antes de iniciar a API. Na execução local do Node, aplique-as manualmente conforme [README.DOCKER.md](README.DOCKER.md).
 
 ## Configuração
 

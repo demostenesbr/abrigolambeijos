@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const source = resolve(here, "../../ml/datasets/raw/real_pets.csv");
+const processedSource = resolve(here, "../../ml/datasets/processed/pets_processed.csv");
 const target = resolve(here, "../app/data/real-pets.json");
 // Fotos já convertidas para WEBP (apps/ml/src/data/convert_pet_photos.py), servidas em /pets/<hash>.webp.
 const photoMap = resolve(here, "../../ml/datasets/processed/photo_map.json");
@@ -65,6 +66,17 @@ const sizeOf = (value) => {
 };
 
 const [header, ...rows] = parseCsv(readFileSync(source, "utf8").replace(/^\uFEFF/, ""));
+const [processedHeader, ...processedRows] = parseCsv(
+  readFileSync(processedSource, "utf8").replace(/^\uFEFF/, ""),
+);
+const processedIdIndex = processedHeader.indexOf("id");
+const sourceKeyIndex = processedHeader.indexOf("source_key");
+if (processedIdIndex < 0 || sourceKeyIndex < 0) {
+  throw new Error("pets_processed.csv precisa conter id e source_key.");
+}
+const sourceKeysById = new Map(
+  processedRows.map((row) => [row[processedIdIndex], row[sourceKeyIndex]]),
+);
 const col = (name) => header.findIndex((h) => strip(h).startsWith(strip(name)));
 const idx = {
   photo: col("Foto do Pet"),
@@ -104,6 +116,7 @@ const photoOf = (url) => {
 const pets = rows
   .map((r, index) => ({
     id: `real-${index + 1}`,
+    rganimal: `REAL-${sourceKeysById.get(String(index + 1)) ?? ""}`,
     photo: photoOf(r[idx.photo]),
     breed: clean(r[idx.breed]),
     gender: clean(r[idx.gender]),
@@ -119,7 +132,7 @@ const pets = rows
     neutered: yes(r[idx.neutered]),
     microchipped: yes(r[idx.microchipped]),
   }))
-  .filter((pet) => pet.size && pet.birthDate);
+  .filter((pet) => pet.size && pet.birthDate && !pet.rganimal.endsWith("-"));
 
 mkdirSync(dirname(target), { recursive: true });
 writeFileSync(target, `${JSON.stringify(pets, null, 2)}\n`, "utf8");

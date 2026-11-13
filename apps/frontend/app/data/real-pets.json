@@ -1,6 +1,7 @@
 [
   {
     "id": "real-1",
+    "rganimal": "REAL-c68c8de9f7",
     "photo": "2cbd34615fa260b5.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Macho",
@@ -18,6 +19,7 @@
   },
   {
     "id": "real-2",
+    "rganimal": "REAL-4a9e4e1c03",
     "photo": "9b9dad48684c88cb.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Fêmea",
@@ -35,6 +37,7 @@
   },
   {
     "id": "real-3",
+    "rganimal": "REAL-364256fa2c",
     "photo": "b70d0ce373c89a7c.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Macho",
@@ -52,6 +55,7 @@
   },
   {
     "id": "real-4",
+    "rganimal": "REAL-ee8ae51585",
     "photo": "6ae2f073cfdb1b80.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Macho",
@@ -69,6 +73,7 @@
   },
   {
     "id": "real-5",
+    "rganimal": "REAL-90cc93ffde",
     "photo": "f7d68e75ac99c18d.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Fêmea",
@@ -86,6 +91,7 @@
   },
   {
     "id": "real-6",
+    "rganimal": "REAL-ad233a103a",
     "photo": "8e8efffda4dec74e.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Macho",
@@ -103,6 +109,7 @@
   },
   {
     "id": "real-7",
+    "rganimal": "REAL-e0d0925528",
     "photo": "4d47133c11026e20.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Fêmea",
@@ -120,6 +127,7 @@
   },
   {
     "id": "real-8",
+    "rganimal": "REAL-e49f0b4ea1",
     "photo": "2d2893d047ab6f7a.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Fêmea",
@@ -137,6 +145,7 @@
   },
   {
     "id": "real-9",
+    "rganimal": "REAL-5a93086792",
     "photo": "9bdfcbf5c1f85c66.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Macho",
@@ -154,6 +163,7 @@
   },
   {
     "id": "real-10",
+    "rganimal": "REAL-c06999b629",
     "photo": "5f4c862a714848bf.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Macho",
@@ -171,6 +181,7 @@
   },
   {
     "id": "real-11",
+    "rganimal": "REAL-919c2001b8",
     "photo": "ff418677d787631f.webp",
     "breed": "Shitzu",
     "gender": "Fêmea",
@@ -188,6 +199,7 @@
   },
   {
     "id": "real-12",
+    "rganimal": "REAL-59fb0feb55",
     "photo": "a6e4db2feb915ce5.webp",
     "breed": "Sem Raça Definida (SRD)",
     "gender": "Macho",

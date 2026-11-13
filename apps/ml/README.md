@@ -4,11 +4,11 @@
 
 | Item | Descrição |
 |---|---|
-| **Problema** | Indicar, para um adotante, quais animais do abrigo têm maior chance de adoção bem-sucedida. |
+| **Problema** | Ordenar animais por compatibilidade estimada com o perfil informado; o sistema ainda não prevê sucesso de adoção. |
 | **Dados de entrada** | 11 atributos do adotante (moradia, quintal, crianças, outros pets, experiência, tempo, atividade, porte e idade preferidos) + 9 atributos do animal (energia, temperamento, sociabilidade, necessidade de exercício, adaptação a apartamento, compatibilidade com crianças/cães/gatos, idade). Ver `src/config/settings.py`. |
 | **Tarefa** | Classificação binária: o par adotante × animal é compatível (1) ou não (0)? |
 | **Modelo** | Candidatos: árvore de decisão, Random Forest, regressão logística e KNN, comparados por validação cruzada (F1). O Random Forest foi o escolhido. |
-| **Saída** | Probabilidade de compatibilidade (0 a 1) por animal; o ranking ordena os animais por essa probabilidade. |
+| **Saída** | Score de compatibilidade estimado (0 a 1) por animal; não é uma probabilidade calibrada de adoção bem-sucedida. |
 | **Uso na interface** | Página `/recomendacao` do frontend → `POST /recommendations/me` (backend) → `python -m src.interference.cli` → ranking dos pets cadastrados no banco. |
 | **Avaliação** | Accuracy, precision, recall, F1 e matriz de confusão, comparados a um baseline (classe majoritária). |
 
@@ -46,7 +46,7 @@ existentes, use `.venv\Scripts\python.exe -m src.data.generate_datasets --replac
 e depois execute o treinamento. O comando de geração sem essa opção recria todo
 o catálogo e todos os pares.
 
-## Resultados atuais (conjunto de teste, 150 pares / 30 adotantes)
+## Resultados do experimento sintético (conjunto de teste, 150 pares / 30 adotantes)
 
 | Modelo | F1 (CV) | F1 (teste) | Accuracy (teste) |
 |---|---|---|---|

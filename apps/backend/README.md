@@ -27,8 +27,9 @@ Todos usam JSON. Recursos marcados admin exigem JWT Bearer, usuário `ACTIVE` e 
 | GET, PATCH, DELETE | `/adopters/:id` | Admin |
 | GET, POST | `/adoptions` | Admin; listar/criar |
 | GET, PATCH, DELETE | `/adoptions/:id` | Admin |
-| GET, POST | `/adoption-requests` | Admin; listar/criar |
-| GET, PATCH, DELETE | `/adoption-requests/:id` | Admin |
+| GET, POST | `/adoption-requests` | Admin; listar/criar manualmente |
+| POST | `/adoption-requests/me` | Perfil `ADOPTER` autenticado; criar sua própria solicitação |
+| GET, PATCH, DELETE | `/adoption-requests/:id` | Admin; `PATCH` permite status `pending`, `approved` ou `rejected` |
 | GET, POST | `/rescues` | Admin; listar/criar |
 | GET, PATCH, DELETE | `/rescues/:id` | Admin |
 | GET, POST | `/donations` | Admin; listar/criar |
@@ -46,25 +47,26 @@ Todos usam JSON. Recursos marcados admin exigem JWT Bearer, usuário `ACTIVE` e 
 | GET | `/recommendations/model/report` | Admin; relatório do modelo/datasets |
 | GET, PATCH, DELETE | `/recommendations/:id` | Admin |
 
-**Gap do fluxo de adoção:** `POST /adoption-requests` é protegido para admin; não há endpoint público de escrita no controller encontrado.
+O adotante autenticado envia `POST /adoption-requests/me`. O servidor obtém identidade e e-mail do JWT, associa o perfil de adotante, resolve o pet pela referência estável `animalReference` e cria a solicitação como `pending`. O Admin continua responsável por listar e alterar o status; o cliente não pode informar `adopterId`, nome, e-mail ou status.
 
 ### DTOs e contratos notáveis
 
 - `POST /auth/register`: `{ email, password, name?, username? }`; senha mínima 8. Autocadastro sempre cria `ADOPTER` ativo. Bcrypt para hash; JWT assinado com `JWT_SECRET`.
 - `POST /auth/login`: `{ email, password }`; usuário não ativo é recusado.
+- `POST /adoption-requests/me`: `{ animalReference, phone, address, experience, home }`; exige papel `ADOPTER` e token ativo. O `animalReference` é o `rganimal` estável gerado para os pets reais. O servidor deriva `adopterId`, `animalId`, `petName`, `userName`, `email` e `status: pending`. Solicitação pendente duplicada para o mesmo perfil/pet retorna conflito.
 - `POST /recommendations/me`: `{ profile, topN? }`; `topN` inteiro 1–20. `profile` contém `home_type` (`Apartment|House`), `has_yard`, `has_children`, `children_age_group`, `has_other_pets`, `other_pets_type` (`CAT|DOG|NONE`), `dog_experience` (`Beginner|Intermediate|Experienced`), `available_time`, `activity_level` (`Low|Medium|High`), `preferred_size` (`Small|Medium|Large`) e `preferred_age` (`Filhote|Adulto|Idoso`). Resposta `{ adopterId, results: [{ petId, name, species, score }] }`; persiste os resultados.
 - `POST /partners/applications`: `name`, `type`, `contact`, `email`, `phone`, `address`, `city`, `state`, `country`, `description`; candidatura não cria conta.
-- `PaginationQueryDto` define `page`, `limit` (máx. 100), `q`, mas não foi localizado nos controllers CRUD; listagens atuais parecem não paginadas.
+- `GET /pets` aceita `page`, `limit` (1–100, padrão 20 quando paginado) e `q`. Sem `page`, preserva a resposta legada como array; com `page`, retorna `{ items, total, page, limit, pages, summary }`. Os outros endpoints de listagem não mostram paginação uniforme.
 
 ## Schema Prisma
 
-Datasource PostgreSQL, `relationMode = "prisma"`. Não há `@relation` declarado: os campos ID abaixo não criam chaves estrangeiras explícitas no schema.
+Datasource PostgreSQL com `relationMode = "foreignKeys"`. `Users` tem perfil de adotante opcional 1:1 por `Adopters.userId`; adotantes se relacionam a adoções, pedidos e recomendações, e cada um desses registros aponta para um `Pets`. A migration cria FKs PostgreSQL, com `SetNull` ao excluir uma conta e `Restrict` para preservar histórico vinculado. `Pets.rganimal` é único.
 
 | Modelo | Campos além do `id` |
 |---|---|
 | `Users` | `email` único, `name?`, `username?`, `password`, `role` (`ADOPTER/PROTECTOR/PARTNER/ADMIN`), `status` (`ACTIVE/INACTIVE/SUSPENDED`), `createdAt`, `updatedAt` |
 | `Pets` | `animalname`, `rganimal`, `dateentry`, `petphoto?`, `name`, `race`, `gender`, `microchipped`, `microchipnumber?`, `castrated`, `coattypecoloration`, `predominantcoatcolor`, `signsanddistinctive`, `estimatedchronologicalage`, `birthdate`, `size`, `behavioralprofile?`, `healthcondition?`, `redemptioncondition?`, `species`, `energyLevel`, `temperament`, `sociability`, `exerciseNeed`, `apartmentAdaptability`, `childrenCompatibility`, `dogsCompatibility`, `catsCompatibility`, timestamps |
-| `Adopters` | `name`, `email` único, `phone?`, timestamps |
+| `Adopters` | `name`, `email` único, `userId?` único (conta vinculada), `phone?`, timestamps |
 | `Adoptions` | `adopterId`, `animalId`, `adoptionDate`, `status` (`String`, padrão `in_progress`), timestamps |
 | `AdoptionRequests` | `adopterId`, `animalId`, `requestDate`, `petName`, `userName`, `email`, `phone`, `address`, `experience`, `home`, `status` (`String`, padrão `pending`), timestamps |
 | `Rescues` | `name`, `location`, `status` (`String`: triage/in_treatment/recovered), timestamps |
@@ -88,4 +90,4 @@ npm run build
 npx prisma migrate deploy
 ```
 
-Variáveis: `DATABASE_URL`, `PORT`, `CORS_ORIGINS`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `DB_POOL_MAX`, `ML_APP_PATH`, `ML_PYTHON_EXECUTABLE`. Compose não aplica migrations automaticamente. O pacote declara adapter/pacote MariaDB junto ao adapter PostgreSQL usado pelo código; MariaDB parece dependência obsoleta.
+Variáveis: `DATABASE_URL`, `PORT`, `CORS_ORIGINS`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `DB_POOL_MAX`, `ML_APP_PATH`, `ML_PYTHON_EXECUTABLE`. Compose aplica migrations antes do startup; localmente use `npx prisma migrate deploy`. A migration de relações aborta antes de alterar a base se encontrar órfãos em `Adoptions`, `AdoptionRequests` ou `Recommendations`, ou `Pets.rganimal` duplicado. O pacote ainda declara dependências MariaDB que o serviço atual PostgreSQL não usa.

@@ -1,6 +1,7 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateAdoptionRequestDto } from './create-adoption-request.dto';
+import { IsIn, IsOptional } from 'class-validator';
 
-export class UpdateAdoptionRequestDto extends PartialType(
-  CreateAdoptionRequestDto,
-) {}
+export class UpdateAdoptionRequestDto {
+  @IsOptional()
+  @IsIn(['pending', 'approved', 'rejected'])
+  status?: string;
+}

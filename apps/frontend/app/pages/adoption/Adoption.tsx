@@ -1,7 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import { allAnimals, formatAge } from "../../data/animals";
+import { allAnimals, formatAge, type Animal } from "../../data/animals";
+import { api } from "../../services/api";
+import { authService, errorMessage } from "../../services/auth";
 /*import VaccinatedIcon from "./../../assets/vaccinated.png";
 import NeuteredIcon from "./../../assets/castratated.png";
 import MicrochippedIcon from "./../../assets/microchipped.png";
@@ -29,6 +32,68 @@ const sizeLabels: Record<string, string> = {
 export default function Adopt() {
   const [tab, setTab] = useState<Tab>("adotar");
   const [sizeFilter, setSizeFilter] = useState("todos");
+  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+  const [requestForm, setRequestForm] = useState({
+    phone: "",
+    address: "",
+    experience: "",
+    home: "",
+  });
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [requestFeedback, setRequestFeedback] = useState<{
+    message: string;
+    needsLogin?: boolean;
+    success?: boolean;
+  } | null>(null);
+
+  const startAdoptionRequest = (animal: Animal) => {
+    setRequestFeedback(null);
+    if (!authService.getToken()) {
+      setRequestFeedback({
+        message: "Entre com uma conta de adotante para solicitar este animal.",
+        needsLogin: true,
+      });
+      return;
+    }
+    if (authService.getUser()?.role !== "ADOPTER") {
+      setRequestFeedback({
+        message: "A solicitação de adoção está disponível para o perfil adotante.",
+      });
+      return;
+    }
+    if (!animal.rganimal) {
+      setRequestFeedback({
+        message: "Não foi possível identificar este cadastro no sistema. Tente novamente mais tarde.",
+      });
+      return;
+    }
+    setRequestForm({ phone: "", address: "", experience: "", home: "" });
+    setSelectedAnimal(animal);
+  };
+
+  const submitAdoptionRequest = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const animal = selectedAnimal;
+    if (!animal?.rganimal) return;
+    setSubmittingRequest(true);
+    setRequestFeedback(null);
+    try {
+      await api.post("/adoption-requests/me", {
+        animalReference: animal.rganimal,
+        ...requestForm,
+      });
+      setSelectedAnimal(null);
+      setRequestForm({ phone: "", address: "", experience: "", home: "" });
+      setRequestFeedback({
+        message: `Solicitação enviada para ${animal.name}. Ela ficará pendente até a análise do abrigo.`,
+        success: true,
+      });
+    } catch (error) {
+      setRequestFeedback({ message: errorMessage(error) });
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
 
   const filtered = allAnimals.filter((a) => {
     if (a.status !== tabStatus[tab]) return false;
@@ -73,6 +138,12 @@ export default function Adopt() {
           Navegue pelos cães disponíveis para adoção, relate animais perdidos ou
           informe sobre encontrados.
         </p>
+        {requestFeedback && (
+          <p role={requestFeedback.success ? "status" : "alert"} className={`mt-4 max-w-2xl rounded-xl p-4 text-sm ${requestFeedback.success ? "bg-green-50 text-green-800" : "bg-amber-50 text-amber-900"}`}>
+            {requestFeedback.message}{" "}
+            {requestFeedback.needsLogin && <Link className="font-bold underline" href="/entrar">Entrar</Link>}
+          </p>
+        )}
       </div>
 
       {/* Tabs */}
@@ -256,6 +327,9 @@ export default function Adopt() {
                   )}
                 </div>
                 <button
+                  onClick={() => {
+                    if (a.status === "adotar") startAdoptionRequest(a);
+                  }}
                   className={`w-full text-sm font-semibold py-2 rounded-full transition-colors text-white ${
                     a.status === "perdido"
                       ? "bg-[#D9534F] hover:bg-[#C0392B]"
@@ -273,6 +347,47 @@ export default function Adopt() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {selectedAnimal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !submittingRequest) {
+              setSelectedAnimal(null);
+            }
+          }}
+        >
+          <section role="dialog" aria-modal="true" aria-labelledby="adoption-request-title" className="my-8 w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-[#F28C28]">Solicitação de adoção</p>
+                <h2 id="adoption-request-title" className="mt-1 text-2xl font-black text-[#2F2140]">{selectedAnimal.name}</h2>
+                <p className="mt-2 text-sm text-[#78909C]">Seus dados de nome e e-mail virão da sua conta. O abrigo analisará o pedido.</p>
+              </div>
+              <button type="button" aria-label="Fechar" disabled={submittingRequest} onClick={() => setSelectedAnimal(null)} className="rounded-full px-3 py-1 text-xl text-[#78909C] hover:bg-[#F5F1F8]">×</button>
+            </div>
+            <form className="space-y-4" onSubmit={submitAdoptionRequest}>
+              <label className="block text-sm font-semibold text-[#37474F]">Telefone
+                <input required maxLength={30} value={requestForm.phone} onChange={(event) => setRequestForm((form) => ({ ...form, phone: event.target.value }))} className="mt-1 w-full rounded-xl border border-[#D1C4E9] px-3 py-2.5" />
+              </label>
+              <label className="block text-sm font-semibold text-[#37474F]">Endereço
+                <input required maxLength={300} value={requestForm.address} onChange={(event) => setRequestForm((form) => ({ ...form, address: event.target.value }))} className="mt-1 w-full rounded-xl border border-[#D1C4E9] px-3 py-2.5" />
+              </label>
+              <label className="block text-sm font-semibold text-[#37474F]">Experiência com animais
+                <textarea required maxLength={2000} rows={3} value={requestForm.experience} onChange={(event) => setRequestForm((form) => ({ ...form, experience: event.target.value }))} className="mt-1 w-full rounded-xl border border-[#D1C4E9] px-3 py-2.5" />
+              </label>
+              <label className="block text-sm font-semibold text-[#37474F]">Como é sua moradia e quem vive nela?
+                <textarea required maxLength={2000} rows={3} value={requestForm.home} onChange={(event) => setRequestForm((form) => ({ ...form, home: event.target.value }))} className="mt-1 w-full rounded-xl border border-[#D1C4E9] px-3 py-2.5" />
+              </label>
+              {requestFeedback && !requestFeedback.success && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{requestFeedback.message}</p>}
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" disabled={submittingRequest} onClick={() => setSelectedAnimal(null)} className="rounded-full border border-[#D1C4E9] px-5 py-2.5 text-sm font-semibold text-[#4D246A]">Cancelar</button>
+                <button type="submit" disabled={submittingRequest} className="rounded-full bg-[#F28C28] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60">{submittingRequest ? "Enviando..." : "Enviar solicitação"}</button>
+              </div>
+            </form>
+          </section>
         </div>
       )}
     </div>

@@ -23,8 +23,9 @@ Site Next.js 16 App Router, React 19 e TypeScript. Em desenvolvimento: `http://l
 - Recomendação: `POST /recommendations/me`.
 - Conteúdo público: `GET /partners/public`, `GET /stats`, `GET /donations/summary`.
 - Candidatura de parceiro: `POST /partners/applications`.
+- Solicitação de adoção: botão “Quero adotar” abre formulário para usuário autenticado como `ADOPTER` e envia `POST /adoption-requests/me`; o backend associa o pet e o perfil, cria o status `pending`, e o Admin faz a análise.
 
-Não há endpoint público de criação de pedido de adoção: `/adoption-requests` está protegido para admin. A existência de uma tela ou wrapper não comprova integração. Veja os contratos em [README do backend](../backend/README.md).
+Os cards reais carregam a chave estável do cadastro por `generate-real-pets.mjs`; os registros sintéticos de perdidos/encontrados não podem ser enviados como pets para adoção. Veja os contratos em [README do backend](../backend/README.md).
 
 ```bash
 npm run dev
