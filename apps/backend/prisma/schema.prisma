@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
     provider     = "postgresql"
-    relationMode = "prisma"
+    relationMode = "foreignKeys"
 }
 
 enum UserRole {
@@ -31,6 +31,8 @@ model Users {
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    adopterProfile Adopters?
 
     @@index([email])
     @@index([username])
@@ -72,6 +74,11 @@ model Pets {
     createdAt                 DateTime @default(now())
     updatedAt                 DateTime @updatedAt
 
+    @@unique([rganimal])
+    adoptions        Adoptions[]
+    adoptionRequests AdoptionRequests[]
+    recommendations  Recommendations[]
+
     @@index([animalname])
 }
 
@@ -79,9 +86,15 @@ model Adopters {
     id        Int      @id @default(autoincrement())
     name      String
     email     String   @unique
+    userId    Int?     @unique
     phone     String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    user              Users?               @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+    adoptions         Adoptions[]
+    adoptionRequests  AdoptionRequests[]
+    recommendations   Recommendations[]
 
     @@index([email])
 }
@@ -94,6 +107,9 @@ model Adoptions {
     status       String   @default("in_progress")
     createdAt    DateTime @default(now())
     updatedAt    DateTime @updatedAt
+
+    adopter Adopters @relation(fields: [adopterId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+    pet     Pets     @relation(fields: [animalId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
     @@index([adopterId])
     @@index([animalId])
@@ -114,6 +130,9 @@ model AdoptionRequests {
     status      String   @default("pending")
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
+
+    adopter Adopters @relation(fields: [adopterId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+    pet     Pets     @relation(fields: [animalId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
     @@index([adopterId])
     @@index([animalId])
@@ -158,6 +177,9 @@ model Recommendations {
     recommendationText String
     createdAt          DateTime @default(now())
     updatedAt          DateTime @updatedAt
+
+    adopter Adopters @relation(fields: [adopterId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+    pet     Pets     @relation(fields: [animalId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
     @@index([adopterId])
     @@index([animalId])
